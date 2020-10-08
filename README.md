@@ -1,8 +1,8 @@
 ### Hi there 👋
-I'm an I.T undergraduate in their final semester of study at Newcastle University, looking to start a career in software development. I love the c# and .net eco-system, having built my own full-stack asp.net web app. I believe that I have coding fundamentals down pat and am now moving onto better coding principles, architecture and DevOps concepts - but I still have a long way to go. 
+I'm an I.T undergraduate in their final semester of study at Newcastle University, looking to start a career in software development. I love the c# and .net eco-system, having built my own full-stack asp.net web app. I believe that I have coding fundamentals down pat and am now moving onto better coding principles and architecture - but still have a long way to go!
 
 I'm currently working on:
-- 🔥 Blazor development
+- 🔥 .net core development
 - 📱 Xamarin mobile app development
 
 <!--
