@@ -1,5 +1,5 @@
 ### Hi there 👋
-I'm a junior software developer and University of Newcastle Australia Alumni. 
+I'm a junior software developer and University of Newcastle Australia alumni. 
 I am highly focused on the c# and .net eco-system.
 
 I'm currently working on:
