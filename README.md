@@ -1,6 +1,5 @@
 ### Hi there 👋
-I'm a junior software developer and University of Newcastle Australia alumni. 
-I am highly focused on the c# and .net eco-system.
+I'm a University of Newcastle, Australia alumni and I love the c# and .net eco-system.
 
 I'm currently working on:
 - 🐛 Bugger! A bug tracking app for learning Blazor Server and tracking my own bugs (look out Jira!)
