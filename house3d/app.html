@@ -280,17 +280,17 @@ const ROOMS=[
 // Nick Scali San Remo range (nickscali.com.au, Nov 2026). Leather colours sampled from the site swatches.
 const PALETTES={sanremo:[['Dakota Brown','#5e5043','2D-D1042'],['Dakota Blue Grey','#585f67','2D-D1133'],['Dakota Charcoal','#3d3e3b','2D-D1030'],['Dakota Yellow','#7c6139','2D-D1083'],['Dakota Fern','#4f5350','2D-D1078'],['Dakota Tan','#68563b','2D-D1052'],['Dakota Saddle','#604d36','2D-D1012'],['Aeris Butternut','#8e6852','2D-A7862'],['Aeris Dark Olive','#454430','2D-A7858'],['Aeris Moss','#71664c','2D-A7848'],['Aeris Light Grey','#81817d','2D-A7833'],['Aeris Camel','#7f7268','2D-A7823'],['Aeris Fog Blue','#727a7a','2D-A7813'],['Safari Pale Mushroom','#918981','2D-S3124'],['Safari Dark Teal','#273238','2D-S3125'],['Safari Sandstone','#746452','2D-S3127'],['Safari Light Mocha','#4d3f34','2D-S3128'],['Safari Saddle Tan','#60432e','2D-S3129'],['Safari Muted Sage','#5a5951','2D-S3130'],['Safari Moss','#433d2e','2D-S3178']]};
 const SR_NOTE='Nick Scali San Remo. 100% leather. Seat: duvet comfort wraps (30% feather, 70% fibre). Back cushions: duvet bag fill. Suspension: HD foam 28-32 kg/m³ + Dacron + no-sag springs. https://www.nickscali.com.au/sofa-collections/san-remo';
-const SR=(price,was,sku)=>({palette:'sanremo',finish:'Aeris Moss',price,note:`${sku?sku+'. ':''}$${price} on site Nov 2026 (was $${was}). `+SR_NOTE});
+const SR=(price,was,sku,cfg)=>({palette:'sanremo',finish:'Aeris Moss',cfg,price,note:`${sku?sku+'. ':''}$${price} on site Nov 2026 (was $${was}). `+SR_NOTE});
 const CATALOGUE=[
  ['Nick Scali – San Remo',[
-  ['San Remo 5-seat corner, armless seat','sanremo',319,196,86,'#71664c',0,SR(4245,4495,'2D9051A7848TU')],
-  ['San Remo 3-seat & chaise','chaise',338,162,86,'#71664c',0,SR(3790,3890)],
-  ['San Remo 6-seat corner, terminal','sanremo',319,244,86,'#71664c',0,SR(4430,4690)],
-  ['San Remo 6-seat corner','corner',319,227,86,'#71664c',0,SR(4530,4790)],
-  ['San Remo 7-seat corner','corner',319,319,86,'#71664c',0,SR(5490,5790)],
-  ['San Remo 4.5-seat (3 pieces)','sofa',338,113,86,'#71664c',0,SR(3450,3590)],
-  ['San Remo 3-seat (2 pieces)','sofa',246,113,86,'#71664c',0,SR(2490,2590)],
-  ['San Remo square ottoman','cabinet',110,110,44,'#71664c',0,SR(750,790)],
+  ['San Remo 5-seat corner, armless seat','sanremo',319,196,86,'#71664c',0,SR(4245,4495,'2D9051A7848TU','side')],
+  ['San Remo 3-seat & chaise','sanremo',338,162,86,'#71664c',0,SR(3790,3890,'','chaise')],
+  ['San Remo 6-seat corner, terminal','sanremo',319,244,86,'#71664c',0,SR(4430,4690,'','side')],
+  ['San Remo 6-seat corner','sanremo',319,227,86,'#71664c',0,SR(4530,4790,'','corner')],
+  ['San Remo 7-seat corner','sanremo',319,319,86,'#71664c',0,SR(5490,5790,'','corner')],
+  ['San Remo 4.5-seat (3 pieces)','sanremo',338,113,86,'#71664c',0,SR(3450,3590,'','straight')],
+  ['San Remo 3-seat (2 pieces)','sanremo',246,113,86,'#71664c',0,SR(2490,2590,'','straight')],
+  ['San Remo square ottoman','sanremo',110,110,44,'#71664c',0,SR(750,790,'','ottoman')],
  ]],
  ['Your current furniture',[
   ['Grey recliner sofa (current)','recliners',205,100,100,'#74707e'],['Rattan TV unit (current)','rattan',160,40,62,'#cf9f62'],
@@ -575,25 +575,37 @@ const BUILD={
   for(const a of[-1,1])for(const b of[-1,1]){const wh=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.24,20),mat('#151515',.9));wh.rotation.z=Math.PI/2;wh.position.set(a*(w/2-.13),.34,b*(d/2-.75));wh.castShadow=true;g.add(wh)}},
  bbq(g,w,d,h,c){const m=mat(c,.4,.5);B(g,w,.85,d,0,0,0,m);B(g,w*.62,.3,d,0,.85,0,mat(shade(c,.1),.3,.6))},
  lounger(g,w,d,h,c){const m=mat(c,.9);B(g,w,.28,d,0,0,0,m);const b=B(g,w,.06,d*.38,0,0,-d/2+d*.17,m);b.rotation.x=.7;b.position.y=.28+d*.12},
- sanremo(g,w,d,h,c){// plush L-shape: rounded arms, deep puffy seat cushions, pillow back cushions (as in Nick Scali photos)
-  const m=mat(c,.5),cu=mat(shade(c,.03),.45),base=mat(shade(c,-.3),.6),bd=Math.min(1.13,d*.6),a=.22,t=.2,sh=.45,fh=Math.min(h-.2,.64);
-  const cx=w/2-a-(bd-a)/2,cw=bd-a;// corner / return column
-  // recessed dark plinth
-  RB(g,w-.06,.05,bd-.06,0,0,-d/2+bd/2,base,.01);RB(g,cw-.03,.05,d-bd,cx,0,-d/2+bd+(d-bd)/2-.03,base,.01);
-  // seat bases (upholstered frame under the cushions)
-  const x0=-w/2+a,x1=w/2-bd,n=2,sw=(x1-x0)/n;
-  RB(g,x1-x0+cw,.24,bd-t,(x0+x1+cw)/2,.04,-d/2+t+(bd-t)/2,m,.05);RB(g,cw,.24,d-bd+.02,cx,.04,-d/2+bd+(d-bd)/2,m,.05);
-  // deep seat cushions with rounded, slightly overhanging fronts
-  const seat=(cw2,cd,x,z)=>{const k=RB(g,cw2,.19,cd,x,sh-.19,z,cu,.075);k.scale.y=1.04};
-  for(let i=0;i<n;i++)seat(sw-.015,bd-t+.02,x0+sw*(i+.5),-d/2+t+(bd-t)/2+.01);
-  seat(cw-.015,bd-t+.02,cx,-d/2+t+(bd-t)/2+.01);seat(cw-.015,d-bd-.01,cx,-d/2+bd+(d-bd)/2);
-  // low back frame and wide, soft rounded arms
-  RB(g,w,fh,t,0,.04,-d/2+t/2,m,.07);
-  RB(g,a,.62,bd,-w/2+a/2,.04,-d/2+bd/2,m,.09);RB(g,a,.62,d,w/2-a/2,.04,0,m,.09);
-  // plump pillow back cushions leaning on the frame
+ sanremo(g,w,d,h,c,o){// plush San Remo modules: rounded arms, deep puffy seats, pillow back cushions (Nick Scali photos)
+  const cfg=(o&&o.cfg)||(d>2.3?'side':'side'),m=mat(c,.5),cu=mat(shade(c,.03),.45),base=mat(shade(c,-.3),.6),a=.22,t=.2,sh=Math.min(.45,h*.95);
+  const plinth=(pw,pd,x,z)=>RB(g,pw-.06,.05,pd-.06,x,0,z,base,.01);
+  const sbase=(pw,pd,x,z)=>RB(g,pw,Math.max(.1,sh-.21),pd,x,.04,z,m,.05);
+  const seat=(pw,pd,x,z)=>{RB(g,pw-.015,.19,pd,x,sh-.19,z,cu,.075)};
+  const arm=(aw,ad,x,z)=>RB(g,aw,.62,ad,x,.04,z,m,.09);
+  const frame=(fw,fd,x,z)=>RB(g,fw,Math.min(h-.2,.64),fd,x,.04,z,m,.07);
   const pil=(pw,x,z,ry)=>{const k=RB(g,pw,.5,.22,0,0,0,cu,.1);k.position.set(x,sh+.24,z);k.rotation.set(-.22,ry,0,'YXZ');k.scale.z=1.1};
-  for(let i=0;i<n;i++)pil(sw*.86,x0+sw*(i+.5),-d/2+t+.13,0);
-  pil(cw*.8,cx-.05,-d/2+t+.13,0);pil(cw*.62,w/2-a-.14,-d/2+t+cw*.55,-Math.PI/2)},
+  const row=(x0,x1,n,z0,z1,pillows)=>{const sw=(x1-x0)/n;for(let i=0;i<n;i++){seat(sw,z1-z0+.02,x0+sw*(i+.5),(z0+z1)/2+.01);if(pillows)pil(sw*.86,x0+sw*(i+.5),z0+.13,0)}};
+  if(cfg==='ottoman'){plinth(w,d,0,0);RB(g,w,sh-.15,d,0,.04,0,m,.06);RB(g,w-.01,.17,d-.01,0,sh-.17,0,cu,.08);return}
+  const bd=cfg==='straight'?d:Math.min(1.13,d*.7);// back-row depth
+  plinth(w,bd,0,-d/2+bd/2);frame(w,t,0,-d/2+t/2);
+  if(cfg==='straight'){const n=Math.max(1,Math.round((w-2*a)/1.0));sbase(w-2*a,d-t,0,-d/2+t+(d-t)/2);row(-w/2+a,w/2-a,n,-d/2+t,d/2,true);arm(a,d,-w/2+a/2,0);arm(a,d,w/2-a/2,0);return}
+  if(cfg==='chaise'){const cw=1.1,x1=w/2-a-cw,n=Math.max(1,Math.round((x1+w/2-a)/.95));
+   plinth(cw+a,d-bd,w/2-(cw+a)/2,-d/2+bd+(d-bd)/2-.03);sbase(w-2*a,bd-t,0,-d/2+t+(bd-t)/2);sbase(cw,d-bd+.02,w/2-a-cw/2,-d/2+bd+(d-bd)/2);
+   row(-w/2+a,x1,n,-d/2+t,-d/2+bd,true);seat(cw,d-t,w/2-a-cw/2,-d/2+t+(d-t)/2);pil(cw*.8,w/2-a-cw/2,-d/2+t+.13,0);
+   arm(a,bd,-w/2+a/2,-d/2+bd/2);arm(a,d,w/2-a/2,0);return}
+  // corner layouts: left arm + seats + corner square along the back, return down the right side
+  const cw=bd-a,cx=w/2-a-cw/2,x1=w/2-bd,n=Math.max(1,Math.round((x1+w/2-a)/.92)),rl=d-bd;
+  plinth(bd,rl,w/2-bd/2,-d/2+bd+rl/2-.03);sbase(x1+w/2-a+cw,bd-t,(-w/2+a+x1+cw)/2,-d/2+t+(bd-t)/2);
+  row(-w/2+a,x1,n,-d/2+t,-d/2+bd,true);arm(a,bd,-w/2+a/2,-d/2+bd/2);
+  if(cfg==='side'){// armless / terminal return: seats face forward, low arm along the outer side
+   seat(cw,bd-t+.02,cx,-d/2+t+(bd-t)/2+.01);pil(cw*.8,cx-.05,-d/2+t+.13,0);pil(cw*.62,w/2-a-.14,-d/2+t+cw*.55,-Math.PI/2);
+   sbase(cw,rl+.02,cx,-d/2+bd+rl/2);const k=Math.max(1,Math.round(rl/1.0));for(let i=0;i<k;i++)seat(cw,rl/k-.01,cx,-d/2+bd+rl/k*(i+.5));
+   arm(a,d,w/2-a/2,0);return}
+  // full corner: return seats face inward, back frame down the outer side, arm across the front end
+  const bx=w/2-t/2,rx0=w/2-bd,rx1=w/2-t;frame(t,d-a,bx,-a/2);arm(bd,a,w/2-bd/2,d/2-a/2);
+  const rz0=-d/2+bd,rz1=d/2-a,rn=Math.max(1,Math.round((rz1-rz0)/.92)),rs=(rz1-rz0)/rn;
+  sbase(rx1-rx0,rz1-rz0+(bd-t),(rx0+rx1)/2,(-d/2+t+rz1)/2);
+  seat(rx1-rx0,bd-t+.02,(rx0+rx1)/2,-d/2+t+(bd-t)/2+.01);pil((bd-t)*.75,(rx0+rx1)/2-.05,-d/2+t+.13,0);
+  for(let i=0;i<rn;i++){const z=rz0+rs*(i+.5);seat(rx1-rx0,rs,(rx0+rx1)/2,z);const q=RB(g,rs*.86,.5,.22,0,0,0,cu,.1);q.position.set(rx1-.13,sh+.24,z);q.rotation.set(-.22,-Math.PI/2,0,'YXZ');q.scale.z=1.1}},
  rattan(g,w,d,h,c){const m=mat(c,.6);B(g,w,h-.14,d,0,.14,0,m);const n=4,dw=(w-.06)/n;for(let i=0;i<n;i++)B(g,dw-.03,h-.22,.01,-w/2+.03+dw*(i+.5),.18,d/2,mat('#d9c08c',.95));
   [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([a,b])=>B(g,.035,.14,.035,a*(w/2-.05),0,b*(d/2-.05),m))},
  swivel(g,w,d,h,c){const m=mat(c,.85);C(g,.22,.06,0,0,0,mat('#3a3a3a',.4,.4));
@@ -608,7 +620,7 @@ let items=[],sel=null,nextId=1;
 function buildItem(it){
  if(it.obj){furnGroup.remove(it.obj);it.obj.traverse(o=>{if(o.geometry&&o.geometry!==unitBox&&!Object.values(rbCache).includes(o.geometry))o.geometry.dispose()})}
  const g=new THREE.Group(),inner=new THREE.Group();g.add(inner);
- (BUILD[it.type]||BUILD.box)(inner,it.w/100,it.d/100,it.h/100,it.color,{elev:(it.elev||0)/100});
+ (BUILD[it.type]||BUILD.box)(inner,it.w/100,it.d/100,it.h/100,it.color,{elev:(it.elev||0)/100,cfg:it.cfg});
  g.position.set(it.x,(it.elev||0)/100,it.z);g.rotation.y=THREE.MathUtils.degToRad(it.rot||0);g.userData.item=it;
  inner.traverse(o=>{o.userData.item=it});it.obj=g;furnGroup.add(g);
 }
@@ -644,7 +656,7 @@ function badMat(m){if(badCache.has(m))return badCache.get(m);const b=m.clone();b
 const KEY='conquest21-layout-v2',OLDKEY='conquest21-layout-v1';
 function serial(){return items.map(({obj,...r})=>r)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({v:1,items:serial()}))}catch(e){}renderList()}
-function load(arr){furnGroup.clear();items=[];sel=null;showProps();arr.forEach(r=>{const it={...r,id:nextId++};items.push(it);buildItem(it)});refreshSel();save()}
+function load(arr){furnGroup.clear();items=[];sel=null;showProps();arr.forEach(r=>{const it={...r,id:nextId++};const c=CAT_BY_NAME[it.name];if(c&&c[7]&&c[7].cfg){it.type=c[1];it.cfg=it.cfg||c[7].cfg}items.push(it);buildItem(it)});refreshSel();save()}
 function makeItem(name,x,z,rot=0,extra={}){const c=CAT_BY_NAME[name];return{name,type:c[1],w:c[2],d:c[3],h:c[4],color:c[5],elev:c[6]||0,x,z,rot,price:0,note:'',...(c[7]||{}),...extra}}
 function P(name,px,py,rot,extra){return makeItem(name,X(px),Z(py),rot,extra)}
 // Lounge (family) room as in the owner's photos, with the San Remo in place of the grey recliner sofa
@@ -812,6 +824,6 @@ if(stored&&Array.isArray(stored.items))load(stored.items);
 else if(old&&Array.isArray(old.items))load([...old.items.filter(i=>!inFamily(i)),...lounge()]);// keep other rooms, refit the lounge
 else load(example());
 resize();requestAnimationFrame(tick);
-window.__house={items:()=>items,status,X,Z,persp,orbit,look,applyLook,setMode};
+window.__house={items:()=>items,status,X,Z,persp,orbit,look,applyLook,setMode,load,makeItem};
 })();
 </script>
