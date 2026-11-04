@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kids Runway</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: sticky header with tabs; plan view = scenario cards → editable scenario table → charts → year table. */
+:root {
+  --bg: #f2f4f1; --surface: #ffffff; --ink: #17201c; --ink-2: #4d5852; --muted: #78827d;
+  --line: #dce1dc; --accent: #7d1e3e; --accent-ink: #ffffff; --accent-soft: #f3e4ea;
+  --good: #0ca30c; --good-ink: #006300; --warn: #fab219; --warn-ink: #8a5a00; --crit: #d03b3b; --crit-ink: #b02a2a;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #101412; --surface: #181d1a; --ink: #eceeec; --ink-2: #bac3be; --muted: #8a948f;
+  --line: #2a322e; --accent: #e38aa8; --accent-ink: #1a0710; --accent-soft: #3a1e29;
+  --good-ink: #3fcf3f; --warn-ink: #fab219; --crit-ink: #ef7b7b;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #101412; --surface: #181d1a; --ink: #eceeec; --ink-2: #bac3be; --muted: #8a948f;
+  --line: #2a322e; --accent: #e38aa8; --accent-ink: #1a0710; --accent-soft: #3a1e29;
+  --good-ink: #3fcf3f; --warn-ink: #fab219; --crit-ink: #ef7b7b;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; color-scheme: dark }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+header .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding-block: 12px; }
+h1 { font: 700 22px/1.1 var(--f-display); margin: 0; letter-spacing: -0.01em; }
+h1 small { display: block; font: 400 12px/1.3 var(--f-body); color: var(--muted); letter-spacing: 0; margin-top: 2px; }
+nav { display: flex; gap: 4px; margin-left: auto; }
+nav a { text-decoration: none; color: var(--ink-2); padding: 6px 12px; border-radius: 999px; font-weight: 500; }
+nav a[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
+nav a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
+main { padding-block: 20px 48px; display: grid; gap: 28px; }
+h2 { font: 700 19px/1.2 var(--f-display); margin: 0 0 4px; text-wrap: balance; }
+h3 { font: 600 14px/1.3 var(--f-body); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }
+p.lede { margin: 0 0 12px; color: var(--ink-2); max-width: 70ch; }
+.num, td.n, .tile b { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* Scenario cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; cursor: pointer; text-align: left; font: inherit; color: inherit; }
+.card[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.card .top { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.card .name { font-weight: 600; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.pill { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; border: 1px solid currentColor; }
+.pill.ok { color: var(--good-ink); } .pill.tight { color: var(--warn-ink); } .pill.bad { color: var(--crit-ink); }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 13px; margin: 0; }
+.kv dt { color: var(--ink-2); } .kv dd { margin: 0; text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* Panels, tables, inputs */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; min-width: 0; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+th { font-weight: 600; color: var(--ink-2); font-size: 12px; }
+td.n, th.n { text-align: right; }
+td.neg { color: var(--crit-ink); }
+input, select { font: inherit; font-size: 14px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 7px; min-width: 0; }
+input[type="number"] { font-family: var(--f-mono); width: 100%; max-width: 130px; text-align: right; }
+td input[type="number"] { max-width: 90px; }
+td input[type="text"] { min-width: 150px; }
+button { font: inherit; font-size: 14px; border-radius: 6px; padding: 6px 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button.link { border: 0; background: none; color: var(--crit-ink); padding: 4px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 16px; }
+.chart-box { position: relative; height: 280px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--ink-2); margin-bottom: 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Assumption forms */
+.forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 16px; align-items: start; }
+.field { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 5px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
+.field:last-child { border-bottom: 0; }
+.field .hint { display: block; font-size: 12px; color: var(--muted); }
+.note { font-size: 13px; color: var(--ink-2); max-width: 75ch; }
+textarea { width: 100%; min-height: 120px; font: 12px/1.4 var(--f-mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+.toast { min-height: 1.4em; font-size: 13px; color: var(--good-ink); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Kids Runway<small>Can we afford kids? Income, mortgage and kid costs over time.</small></h1>
+    <label class="toggle"><input type="checkbox" id="todays" data-path="household.todaysDollars"> Show in today's dollars</label>
+    <nav aria-label="Views">
+      <a href="#plan" data-view="plan">Plan</a>
+      <a href="#tracker" data-view="tracker">Tracker</a>
+      <a href="#assumptions" data-view="assumptions">Assumptions</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+<main>
+  <!-- PLAN -->
+  <section id="view-plan" data-viewpanel="plan" style="display:grid;gap:28px">
+    <div>
+      <h2>Scenarios</h2>
+      <p class="lede" id="plan-lede"></p>
+      <div class="cards" id="cards"></div>
+    </div>
+
+    <div class="panel">
+      <div class="row" style="justify-content:space-between">
+        <h3 style="margin:0">Edit scenarios</h3>
+        <button id="add-scenario" type="button">Add scenario</button>
+      </div>
+      <div class="scroll"><table id="sc-table"></table></div>
+      <p class="note">First kid in = years from now until birth. Gap = years between kids. Childcare days apply from return to work to age 5. Before/after school care applies age 5 to 11.</p>
+    </div>
+
+    <div class="charts">
+      <div class="panel">
+        <h3>Monthly surplus (12-month average)</h3>
+        <div class="legend" id="lg-surplus"></div>
+        <div class="chart-box"><canvas id="ch-surplus" aria-label="Monthly surplus by scenario"></canvas></div>
+      </div>
+      <div class="panel">
+        <h3>Net position (offset minus loan)</h3>
+        <div class="legend" id="lg-net"></div>
+        <div class="chart-box"><canvas id="ch-net" aria-label="Net position by scenario"></canvas></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 id="cost-title">Yearly cost of kids</h3>
+      <div class="legend" id="lg-cost"></div>
+      <div class="chart-box"><canvas id="ch-cost" aria-label="Yearly cost of kids, selected scenario"></canvas></div>
+    </div>
+
+    <div class="panel">
+      <h3 id="year-title">Year by year</h3>
+      <div class="scroll"><table id="year-table"></table></div>
+    </div>
+  </section>
+
+  <!-- TRACKER -->
+  <section id="view-tracker" data-viewpanel="tracker" hidden style="display:grid;gap:20px">
+    <div>
+      <h2>Tracker</h2>
+      <p class="lede">Log real numbers each month. Compare them with the plan for <b id="trk-sc"></b>. Model month 1 = <b id="trk-start"></b>.</p>
+    </div>
+    <form class="panel row" id="trk-form">
+      <label>Month <input type="month" id="trk-month" required></label>
+      <label>Take-home pay <input type="number" id="trk-income" step="1" required></label>
+      <label>All spending <input type="number" id="trk-spend" step="1" required></label>
+      <label>Offset balance <input type="number" id="trk-offset" step="1"></label>
+      <button class="primary" type="submit">Save month</button>
+    </form>
+    <div class="panel">
+      <h3>Offset balance: actual vs plan</h3>
+      <div class="legend" id="lg-trk"></div>
+      <div class="chart-box"><canvas id="ch-trk" aria-label="Actual vs planned offset balance"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="scroll"><table id="trk-table"></table></div>
+    </div>
+  </section>
+
+  <!-- ASSUMPTIONS -->
+  <section id="view-assumptions" data-viewpanel="assumptions" hidden style="display:grid;gap:20px">
+    <div>
+      <h2>Assumptions</h2>
+      <p class="lede">All values are 2026-27 estimates in AUD. Change any value. The plan updates at once. This is a model, not financial advice.</p>
+    </div>
+    <div class="forms" id="forms"></div>
+    <div class="panel">
+      <div class="row" style="justify-content:space-between">
+        <h3 style="margin:0">Other income and costs (per month, today's $)</h3>
+        <button type="button" id="add-other">Add item</button>
+      </div>
+      <p class="note">Negative = cost (car loan, living costs). Positive = extra after-tax income. From/to = years from now.</p>
+      <div class="scroll"><table id="other-table"></table></div>
+    </div>
+    <div class="panel">
+      <h3>Kid running costs per year (today's $, excludes childcare and school fees)</h3>
+      <div class="scroll"><table id="kidcost-table"></table></div>
+      <p class="note">Bands: baby = under 1, toddler = 1–4, primary = 5–11, secondary = 12–17. "Typical" is based on AIFS / NATSEM Cost of Kids research, indexed to 2026. "Absolute minimum" uses second-hand gear and few extras.</p>
+    </div>
+    <div class="panel">
+      <h3>Backup</h3>
+      <p class="note">Data is kept in this browser only. Copy the backup text and keep it safe. Paste it back to restore.</p>
+      <div class="row" style="margin-bottom:8px">
+        <button type="button" id="bk-copy">Copy backup</button>
+        <button type="button" id="bk-load">Load pasted backup</button>
+        <button type="button" id="bk-reset">Reset to defaults</button>
+        <span class="toast" id="bk-msg" role="status"></span>
+      </div>
+      <textarea id="bk-text" aria-label="Backup text" placeholder="Paste backup text here"></textarea>
+    </div>
+  </section>
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="data.js"></script>
+<script src="model.js"></script>
+<script>
+(function () {
+  const STORE = 'kids-runway-v1';
+  const clone = o => JSON.parse(JSON.stringify(o));
+  function merge(a, b) {
+    if (Array.isArray(b) || typeof b !== 'object' || b === null) return b;
+    const out = Array.isArray(a) ? [] : Object.assign({}, a);
+    for (const k in b) out[k] = (a && typeof a[k] === 'object' && !Array.isArray(a[k])) ? merge(a[k], b[k]) : b[k];
+    return out;
+  }
+  const base = merge(clone(window.KIDS_DEFAULTS), window.KIDS_OVERRIDES || {});
+  function nowMonth() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
+
+  let state;
+  try { const s = localStorage.getItem(STORE); state = s ? merge(clone(base), JSON.parse(s)) : clone(base); }
+  catch (e) { state = clone(base); }
+  if (!state.startMonth) state.startMonth = nowMonth();
+  if (state.selected == null) state.selected = Math.min(3, state.scenarios.length - 1);
+  function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
+
+  // ---------- helpers ----------
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const series = i => css('--s' + ((i % 5) + 1));
+  function getPath(p) { return p.split('.').reduce((o, k) => o == null ? o : o[k], state); }
+  function setPath(p, v) { const ks = p.split('.'); const last = ks.pop(); const o = ks.reduce((o, k) => o[k], state); o[last] = v; }
+  const fmt = (v, opts) => {
+    if (v == null || !isFinite(v)) return '–';
+    const a = Math.abs(v), sign = v < 0 ? '−' : '';
+    if (opts === 'short') {
+      if (a >= 1e6) return sign + '$' + (a / 1e6).toFixed(2) + 'm';
+      if (a >= 1e4) return sign + '$' + Math.round(a / 1e3) + 'k';
+    }
+    return sign + '$' + Math.round(a).toLocaleString('en-AU');
+  };
+  function monthLabel(i) {
+    const [y, m] = state.startMonth.split('-').map(Number);
+    const d = new Date(y, m - 1 + i, 1);
+    return d.toLocaleString('en-AU', { month: 'short', year: 'numeric' });
+  }
+  const yearOf = i => { const [y, m] = state.startMonth.split('-').map(Number); return y + Math.floor((m - 1 + i) / 12); };
+  const realK = () => !!state.household.todaysDollars;
+  const val = (r, k) => realK() ? r[k] / r.pIdx : r[k];
+
+  // ---------- compute ----------
+  let results = [], sums = [];
+  function compute() {
+    results = state.scenarios.map(sc => KidsModel.simulate(state, sc));
+    const baseIdx = state.scenarios.findIndex(s => +s.kids === 0);
+    const b = baseIdx >= 0 ? results[baseIdx] : KidsModel.simulate(state, Object.assign({}, state.scenarios[0], { kids: 0 }));
+    sums = results.map(r => KidsModel.summarize(r, b));
+  }
+
+  // ---------- plan view ----------
+  const STATUS = { ok: ['ok', '● Viable'], tight: ['tight', '▲ Tight months'], bad: ['bad', '✕ Runs out of cash'] };
+  function renderCards() {
+    const m0 = results[0];
+    $('plan-lede').textContent =
+      `Mortgage repayment ${fmt(m0.payment)}/month. Household take-home now ${fmt(m0.rows[0].netIncome)}/month. ` +
+      `Pick a scenario to see its detail. Figures in ${realK() ? "today's dollars" : 'future (nominal) dollars'}.` +
+      ` Viable = surplus stays positive. Tight = some 12-month periods spend more than you earn, but the offset covers it.` +
+      ` Worst year = lowest 12-month average surplus. Net = offset minus loan. Kid costs, pay lost and super lost are totals over ${state.household.horizonYears} years.`;
+    $('cards').innerHTML = state.scenarios.map((sc, i) => {
+      const s = sums[i], [cls, label] = STATUS[s.status];
+      const df = s.debtFreeMonth == null ? 'Not in ' + state.household.horizonYears + ' yrs' : yearOf(s.debtFreeMonth);
+      return `<button type="button" class="card" data-select="${i}" aria-pressed="${i === state.selected}">
+        <div class="top"><span class="name"><span class="swatch" style="background:${series(i)}"></span>${esc(sc.name)}</span>
+        <span class="pill ${cls}">${label}</span></div>
+        <dl class="kv">
+          <dt title="Lowest 12-month average surplus">Worst year</dt><dd>${fmt(s.minAvgSurplus)}/mo</dd>
+          <dt title="Offset minus loan after 10 years">Net, yr 10</dt><dd>${fmt(s.netPos10, 'short')}</dd>
+          <dt title="Year the offset balance covers the loan">Loan-free</dt><dd>${df}</dd>
+          <dt title="Running costs, school fees and childcare, less FTB, over the model">Kid costs</dt><dd>${fmt(s.kidCosts, 'short')}</dd>
+          <dt title="Take-home pay lost to leave and part time">Pay lost</dt><dd>${fmt(s.incomeLost, 'short')}</dd>
+          <dt>Super lost</dt><dd>${fmt(s.superLost, 'short')}</dd>
+        </dl></button>`;
+    }).join('');
+  }
+
+  function renderScenarioTable() {
+    const prof = Object.keys(state.kidCosts), sch = Object.keys(state.schoolFees);
+    const opt = (list, cur, lab) => list.map(k => `<option value="${k}"${k === cur ? ' selected' : ''}>${esc(lab(k))}</option>`).join('');
+    $('sc-table').innerHTML = `<thead><tr><th></th><th>Name</th><th class="n">Kids</th><th class="n">First kid in (yrs)</th><th class="n">Gap (yrs)</th><th>Lifestyle</th><th>School</th><th class="n">Childcare days/wk</th><th class="n">School care days/wk</th><th></th></tr></thead><tbody>` +
+      state.scenarios.map((sc, i) => `<tr>
+        <td><span class="swatch" style="display:inline-block;background:${series(i)}"></span></td>
+        <td><input type="text" id="sc-${i}-name" data-path="scenarios.${i}.name" value="${esc(sc.name)}" aria-label="Scenario name"></td>
+        <td class="n"><input type="number" id="sc-${i}-kids" min="0" max="6" step="1" data-path="scenarios.${i}.kids" value="${sc.kids}" aria-label="Kids"></td>
+        <td class="n"><input type="number" id="sc-${i}-first" min="0" step="0.5" data-path="scenarios.${i}.firstIn" value="${sc.firstIn}" aria-label="First kid in years"></td>
+        <td class="n"><input type="number" id="sc-${i}-gap" min="0.75" step="0.5" data-path="scenarios.${i}.gap" value="${sc.gap}" aria-label="Gap years"></td>
+        <td><select id="sc-${i}-prof" data-path="scenarios.${i}.profile" aria-label="Lifestyle">${opt(prof, sc.profile, k => state.kidCosts[k].label)}</select></td>
+        <td><select id="sc-${i}-school" data-path="scenarios.${i}.school" aria-label="School">${opt(sch, sc.school, k => state.schoolFees[k].label)}</select></td>
+        <td class="n"><input type="number" id="sc-${i}-cc" min="0" max="5" step="1" data-path="scenarios.${i}.ccDays" value="${sc.ccDays}" aria-label="Childcare days"></td>
+        <td class="n"><input type="number" id="sc-${i}-oshc" min="0" max="5" step="1" data-path="scenarios.${i}.oshcDays" value="${sc.oshcDays}" aria-label="School care days"></td>
+        <td>${state.scenarios.length > 1 ? `<button type="button" class="link" data-del-sc="${i}" aria-label="Delete ${esc(sc.name)}">Delete</button>` : ''}</td>
+      </tr>`).join('') + '</tbody>';
+    $('add-scenario').disabled = state.scenarios.length >= 5;
+  }
+
+  const charts = {};
+  function baseOpts(yFmt) {
+    const ink = css('--ink-2'), grid = css('--line'), muted = css('--muted');
+    return {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${yFmt(c.parsed.y)}` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: muted, maxRotation: 0, autoSkipPadding: 16 }, border: { color: grid } },
+        y: { grid: { color: grid }, ticks: { color: ink, callback: v => fmt(v, 'short') }, border: { display: false } }
+      }
+    };
+  }
+  function draw(id, cfg) {
+    if (!window.Chart) return;
+    if (charts[id]) charts[id].destroy();
+    charts[id] = new Chart($(id), cfg);
+  }
+  function legend(id, items) {
+    $(id).innerHTML = items.map(([c, l]) => `<span><span class="swatch" style="background:${c}"></span>${esc(l)}</span>`).join('');
+  }
+
+  function renderCharts() {
+    const n = results[0].rows.length;
+    const labels = [];
+    for (let i = 0; i < n; i += 3) labels.push(monthLabel(i));
+    // 12-month trailing average of surplus, sampled quarterly
+    const ds = (k, avg) => results.map((r, i) => {
+      const data = [];
+      for (let m = 0; m < n; m += 3) {
+        if (avg) {
+          const lo = Math.max(0, m - 11), sl = r.rows.slice(lo, m + 1);
+          data.push(sl.reduce((s, x) => s + val(x, k), 0) / sl.length);
+        } else data.push(val(r.rows[m], k));
+      }
+      return { label: state.scenarios[i].name, data, borderColor: series(i), backgroundColor: series(i),
+        borderWidth: i === state.selected ? 3 : 2, pointRadius: 0, pointHoverRadius: 5, tension: 0.2 };
+    });
+    const li = state.scenarios.map((s, i) => [series(i), s.name]);
+    legend('lg-surplus', li); legend('lg-net', li);
+    const zeroLine = { id: 'zero', afterDraw(c) { const y = c.scales.y.getPixelForValue(0); if (y < c.chartArea.top || y > c.chartArea.bottom) return; const x = c.ctx; x.save(); x.strokeStyle = css('--muted'); x.lineWidth = 1; x.beginPath(); x.moveTo(c.chartArea.left, y); x.lineTo(c.chartArea.right, y); x.stroke(); x.restore(); } };
+    draw('ch-surplus', { type: 'line', data: { labels, datasets: ds('surplus', true) }, options: baseOpts(v => fmt(v) + '/mo'), plugins: [zeroLine] });
+    draw('ch-net', { type: 'line', data: { labels, datasets: ds('netPos', false) }, options: baseOpts(v => fmt(v)), plugins: [zeroLine] });
+
+    // Cost of kids per year for selected scenario
+    const sel = state.selected, r = results[sel];
+    const bIdx = state.scenarios.findIndex(s => +s.kids === 0);
+    const b = bIdx >= 0 ? results[bIdx] : null;
+    const years = [], running = [], care = [], lost = [];
+    for (let y = 0; y < n / 12; y++) {
+      const sl = r.rows.slice(y * 12, y * 12 + 12);
+      const sum = k => sl.reduce((s, x) => s + val(x, k), 0);
+      years.push(String(yearOf(y * 12)));
+      running.push(sum('kidCost') - sum('ftb'));
+      care.push(sum('childcare'));
+      lost.push(b ? b.rows.slice(y * 12, y * 12 + 12).reduce((s, x) => s + val(x, 'netIncome'), 0) - sum('netIncome') : 0);
+    }
+    $('cost-title').textContent = `Yearly cost of kids — ${state.scenarios[sel].name}`;
+    const cs = [[css('--s1'), 'Running costs + school fees (less FTB)'], [css('--s2'), 'Childcare after CCS'], [css('--s3'), 'Take-home pay lost (leave, part time)']];
+    legend('lg-cost', cs);
+    const surf = css('--surface');
+    const bar = (d, i) => ({ label: cs[i][1], data: d, backgroundColor: cs[i][0], borderColor: surf, borderWidth: { top: 2 }, borderRadius: i === 2 ? { topLeft: 4, topRight: 4 } : 0, borderSkipped: false, stack: 'a', maxBarThickness: 28 });
+    const o = baseOpts(v => fmt(v));
+    o.scales.x.stacked = true; o.scales.y.stacked = true;
+    o.plugins.tooltip.callbacks.footer = items => 'Total: ' + fmt(items.reduce((s, x) => s + x.parsed.y, 0));
+    draw('ch-cost', { type: 'bar', data: { labels: years, datasets: [bar(running, 0), bar(care, 1), bar(lost, 2)] }, options: o });
+  }
+
+  function renderYearTable() {
+    const sel = state.selected, r = results[sel];
+    $('year-title').textContent = `Year by year — ${state.scenarios[sel].name} (per year)`;
+    const cols = [['Take-home pay', 'netIncome'], ['FTB', 'ftb'], ['Mortgage', 'mortgage'], ['Other costs', 'otherOut'], ['Kid costs', 'kidCost'], ['Childcare', 'childcare'], ['Surplus', 'surplus']];
+    let h = '<thead><tr><th>Year</th><th>Kid ages</th>' + cols.map(c => `<th class="n">${c[0]}</th>`).join('') + '<th class="n">Offset</th><th class="n">Loan</th><th class="n">Net position</th></tr></thead><tbody>';
+    for (let y = 0; y < r.rows.length / 12; y++) {
+      const sl = r.rows.slice(y * 12, y * 12 + 12), last = sl[sl.length - 1];
+      const ages = sl[0].ages.filter(a => a >= -0.99 && a < 18).map(a => a < 0 ? 'due' : Math.floor(a)).join(', ') || '–';
+      h += `<tr><td>${yearOf(y * 12)}</td><td>${ages}</td>` + cols.map(([, k]) => {
+        const v = sl.reduce((s, x) => s + val(x, k), 0);
+        return `<td class="n${k === 'surplus' && v < 0 ? ' neg' : ''}">${fmt(v)}</td>`;
+      }).join('') + `<td class="n${last.offset < 0 ? ' neg' : ''}">${fmt(val(last, 'offset'))}</td><td class="n">${fmt(val(last, 'balance'))}</td><td class="n">${fmt(val(last, 'netPos'))}</td></tr>`;
+    }
+    $('year-table').innerHTML = h + '</tbody>';
+  }
+
+  // ---------- tracker ----------
+  function monthIndex(ym) {
+    const [y, m] = ym.split('-').map(Number), [sy, sm] = state.startMonth.split('-').map(Number);
+    return (y - sy) * 12 + (m - sm);
+  }
+  function renderTracker() {
+    const sel = state.selected, r = results[sel];
+    $('trk-sc').textContent = state.scenarios[sel].name;
+    $('trk-start').textContent = monthLabel(0);
+    const rows = state.tracker.slice().sort((a, b) => a.month < b.month ? -1 : 1);
+    let h = '<thead><tr><th>Month</th><th class="n">Take-home</th><th class="n">Spending</th><th class="n">Surplus</th><th class="n">Plan surplus</th><th class="n">Difference</th><th class="n">Offset</th><th class="n">Plan offset</th><th></th></tr></thead><tbody>';
+    if (!rows.length) h += `<tr><td colspan="9">No months logged yet. Add your first month above.</td></tr>`;
+    rows.forEach(t => {
+      const i = monthIndex(t.month), p = r.rows[i];
+      const surplus = t.income - t.spend, ps = p ? p.surplus : null;
+      h += `<tr><td>${esc(t.month)}</td><td class="n">${fmt(t.income)}</td><td class="n">${fmt(t.spend)}</td><td class="n${surplus < 0 ? ' neg' : ''}">${fmt(surplus)}</td>
+        <td class="n">${fmt(ps)}</td><td class="n${ps != null && surplus - ps < 0 ? ' neg' : ''}">${ps == null ? '–' : fmt(surplus - ps)}</td>
+        <td class="n">${t.offset == null || t.offset === '' ? '–' : fmt(t.offset)}</td><td class="n">${p ? fmt(p.offset) : '–'}</td>
+        <td><button type="button" class="link" data-del-trk="${esc(t.month)}">Delete</button></td></tr>`;
+    });
+    $('trk-table').innerHTML = h + '</tbody>';
+    // chart: first 24 months of plan + actual points
+    const span = Math.max(24, ...rows.map(t => monthIndex(t.month) + 3));
+    const labels = [], plan = [], act = [];
+    for (let i = 0; i < Math.min(span, r.rows.length); i++) {
+      labels.push(monthLabel(i)); plan.push(r.rows[i].offset);
+      const t = rows.find(x => monthIndex(x.month) === i);
+      act.push(t && t.offset !== '' && t.offset != null ? +t.offset : null);
+    }
+    legend('lg-trk', [[css('--s1'), 'Plan (' + state.scenarios[sel].name + ')'], [css('--s2'), 'Actual']]);
+    const o = baseOpts(v => fmt(v));
+    draw('ch-trk', { type: 'line', data: { labels, datasets: [
+      { label: 'Plan', data: plan, borderColor: css('--s1'), backgroundColor: css('--s1'), borderWidth: 2, pointRadius: 0, tension: 0.2 },
+      { label: 'Actual', data: act, borderColor: css('--s2'), backgroundColor: css('--s2'), borderWidth: 2, pointRadius: 4, spanGaps: true, pointBorderColor: css('--surface'), pointBorderWidth: 2 }
+    ] }, options: o });
+  }
+
+  // ---------- assumptions ----------
+  const FORMS = [
+    ['Household', [
+      ['household.personA.name', 'Partner A name', 'text'], ['household.personA.gross', 'Partner A salary (gross, $/yr)'],
+      ['household.personB.name', 'Partner B name', 'text'], ['household.personB.gross', 'Partner B salary (gross, $/yr)'],
+      ['household.wageGrowth', 'Wage growth (%/yr)'], ['household.inflation', 'Inflation (%/yr)'],
+      ['household.horizonYears', 'Years to model'], ['startMonth', 'Model starts (month)', 'month']]],
+    ['Mortgage', [
+      ['mortgage.balance', 'Loan balance ($)'], ['mortgage.rate', 'Interest rate (%/yr)'],
+      ['mortgage.termYears', 'Years left on loan'], ['mortgage.offset', 'Offset + savings now ($)', null, 'All spare cash goes into the offset.']]],
+    ['Parental leave', [
+      ['leave.primary', 'Main carer', 'carer'],
+      ['leave.employerWeeks', 'Employer paid leave (weeks)'], ['leave.employerPct', 'Employer leave pay (%)'],
+      ['leave.plpWeeks', 'Govt Paid Parental Leave (weeks)', null, '26 weeks total from July 2026, shared.'],
+      ['leave.unpaidWeeks', 'Unpaid leave after (weeks)'], ['leave.returnFte', 'Return to work at (% of full time)'],
+      ['leave.fteUntilAge', 'Full time again when youngest is (age)'],
+      ['leave.partnerPaidWeeks', 'Partner employer paid leave (weeks)'], ['leave.partnerPlpWeeks', 'Partner Govt PLP (weeks)']]],
+    ['Childcare', [
+      ['childcare.dayFee', 'Long day care fee ($/day)', null, 'Hunter centres: about $125–$160.'], ['childcare.hoursPerDay', 'Hours per day'],
+      ['childcare.weeksPerYear', 'Weeks charged per year'], ['childcare.oshcFee', 'School care fee ($/day)'],
+      ['childcare.oshcHours', 'School care hours per day'], ['childcare.oshcWeeksPerYear', 'School care weeks per year']]],
+    ['School fees ($/yr, today\'s $)', [
+      ['schoolFees.catholic.primary', 'Catholic primary'], ['schoolFees.catholic.secondary', 'Catholic secondary'],
+      ['schoolFees.independent.primary', 'Independent primary'], ['schoolFees.independent.secondary', 'Independent secondary']]],
+    ['Government (estimates)', [
+      ['govt.plpWeekly', 'PLP pay ($/week)', null, 'National minimum wage.'], ['govt.superRate', 'Super guarantee (rate, 0.12 = 12%)'],
+      ['govt.ccsLowerThreshold', 'CCS 90% up to family income ($)'], ['govt.ccsHourlyCapLDC', 'CCS hourly cap, day care ($)'],
+      ['govt.ccsHourlyCapOSHC', 'CCS hourly cap, school care ($)'], ['govt.medicare', 'Medicare levy (rate)']]]
+  ];
+  function renderForms() {
+    $('forms').innerHTML = FORMS.map(([title, fields]) => `<div class="panel"><h3>${esc(title)}</h3>` + fields.map(([p, label, type, hint]) => {
+      const v = getPath(p), id = 'f-' + p.replace(/\./g, '-');
+      let ctl;
+      if (type === 'text') ctl = `<input type="text" id="${id}" data-path="${p}" value="${esc(v)}">`;
+      else if (type === 'month') ctl = `<input type="month" id="${id}" data-path="${p}" value="${esc(v)}">`;
+      else if (type === 'carer') ctl = `<select id="${id}" data-path="${p}"><option value="A"${v === 'A' ? ' selected' : ''}>${esc(state.household.personA.name)}</option><option value="B"${v === 'B' ? ' selected' : ''}>${esc(state.household.personB.name)}</option></select>`;
+      else ctl = `<input type="number" id="${id}" step="any" data-path="${p}" value="${v}">`;
+      return `<label class="field" for="${id}"><span>${esc(label)}${hint ? `<span class="hint">${esc(hint)}</span>` : ''}</span>${ctl}</label>`;
+    }).join('') + '</div>').join('');
+  }
+  function renderOther() {
+    $('other-table').innerHTML = '<thead><tr><th>Item</th><th class="n">$/month</th><th class="n">From (yr)</th><th class="n">To (yr)</th><th></th></tr></thead><tbody>' +
+      state.other.map((o, i) => `<tr><td><input type="text" id="o-${i}-n" data-path="other.${i}.name" value="${esc(o.name)}" aria-label="Item name"></td>
+        <td class="n"><input type="number" id="o-${i}-m" step="any" data-path="other.${i}.monthly" value="${o.monthly}" aria-label="Monthly amount"></td>
+        <td class="n"><input type="number" id="o-${i}-f" step="any" data-path="other.${i}.fromYear" value="${o.fromYear}" aria-label="From year"></td>
+        <td class="n"><input type="number" id="o-${i}-t" step="any" data-path="other.${i}.toYear" value="${o.toYear}" aria-label="To year"></td>
+        <td><button type="button" class="link" data-del-other="${i}">Delete</button></td></tr>`).join('') + '</tbody>';
+  }
+  function renderKidCosts() {
+    const bands = ['baby', 'toddler', 'primary', 'secondary'];
+    const cats = Object.keys(state.kidCosts.min.baby);
+    let h = '<thead><tr><th>Lifestyle</th><th>Item</th>' + bands.map(b => `<th class="n">${b}</th>`).join('') + '</tr></thead><tbody>';
+    Object.keys(state.kidCosts).forEach(p => {
+      cats.forEach((c, ci) => {
+        h += `<tr>${ci === 0 ? `<td rowspan="${cats.length + 1}"><b>${esc(state.kidCosts[p].label)}</b><br><span class="note">${esc(state.kidCosts[p].note)}</span></td>` : ''}<td>${c}</td>` +
+          bands.map(b => `<td class="n"><input type="number" id="k-${p}-${b}-${c}" step="any" data-path="kidCosts.${p}.${b}.${c}" value="${state.kidCosts[p][b][c]}" aria-label="${p} ${b} ${c}"></td>`).join('') + '</tr>';
+      });
+      h += '<tr><td><b>Total / yr</b></td>' + bands.map(b => `<td class="n num"><b>${fmt(Object.values(state.kidCosts[p][b]).reduce((s, v) => s + (+v || 0), 0))}</b></td>`).join('') + '</tr>';
+    });
+    $('kidcost-table').innerHTML = h + '</tbody>';
+  }
+
+  // ---------- view routing ----------
+  const VIEWS = ['plan', 'tracker', 'assumptions'];
+  function view() { const h = location.hash.slice(1); return VIEWS.includes(h) ? h : 'plan'; }
+  function showView() {
+    const v = view();
+    document.querySelectorAll('[data-viewpanel]').forEach(s => { s.hidden = s.dataset.viewpanel !== v; });
+    document.querySelectorAll('nav a').forEach(a => a.setAttribute('aria-current', a.dataset.view === v ? 'page' : 'false'));
+    renderOutputs();
+  }
+
+  function renderOutputs() {
+    compute();
+    const v = view();
+    if (v === 'plan') { renderCards(); renderCharts(); renderYearTable(); }
+    if (v === 'tracker') renderTracker();
+  }
+  function renderAll() {
+    $('todays').checked = realK();
+    renderScenarioTable(); renderForms(); renderOther(); renderKidCosts();
+    renderOutputs();
+  }
+
+  // ---------- events ----------
+  document.addEventListener('change', e => {
+    const p = e.target.dataset && e.target.dataset.path;
+    if (!p) return;
+    let v;
+    if (e.target.type === 'checkbox') v = e.target.checked;
+    else if (e.target.type === 'number') { v = parseFloat(e.target.value); if (!isFinite(v)) v = 0; }
+    else v = e.target.value;
+    if (p === 'startMonth' && !v) v = nowMonth();
+    setPath(p, v); save();
+    if (p.startsWith('kidCosts')) renderKidCosts();
+    if (p.startsWith('household.person')) renderForms();
+    if (p.startsWith('scenarios') && p.endsWith('name')) renderScenarioTable();
+    renderOutputs();
+  });
+  document.addEventListener('click', e => {
+    const t = e.target.closest('[data-select],[data-del-sc],[data-del-other],[data-del-trk]');
+    if (!t) return;
+    if (t.dataset.select != null) { state.selected = +t.dataset.select; }
+    else if (t.dataset.delSc != null) { state.scenarios.splice(+t.dataset.delSc, 1); state.selected = Math.min(state.selected, state.scenarios.length - 1); renderScenarioTable(); }
+    else if (t.dataset.delOther != null) { state.other.splice(+t.dataset.delOther, 1); renderOther(); }
+    else if (t.dataset.delTrk != null) { state.tracker = state.tracker.filter(x => x.month !== t.dataset.delTrk); }
+    save(); renderOutputs();
+  });
+  $('add-scenario').addEventListener('click', () => {
+    const last = state.scenarios[state.scenarios.length - 1];
+    state.scenarios.push(Object.assign(clone(last), { name: 'New scenario' }));
+    save(); renderScenarioTable(); renderOutputs();
+  });
+  $('add-other').addEventListener('click', () => {
+    state.other.push({ name: 'New item', monthly: -100, fromYear: 0, toYear: 99 });
+    save(); renderOther(); renderOutputs();
+  });
+  $('trk-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const month = $('trk-month').value;
+    if (!month) return;
+    const off = $('trk-offset').value;
+    const row = { month, income: +$('trk-income').value, spend: +$('trk-spend').value, offset: off === '' ? null : +off };
+    state.tracker = state.tracker.filter(x => x.month !== month).concat(row);
+    save(); renderOutputs();
+  });
+  $('trk-month').value = nowMonth();
+
+  const msg = t => { $('bk-msg').textContent = t; setTimeout(() => { $('bk-msg').textContent = ''; }, 4000); };
+  $('bk-copy').addEventListener('click', () => {
+    const txt = JSON.stringify(state);
+    $('bk-text').value = txt;
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => msg('Backup copied.'), () => { $('bk-text').select(); msg('Select the text and copy it.'); });
+    else { $('bk-text').select(); msg('Select the text and copy it.'); }
+  });
+  $('bk-load').addEventListener('click', () => {
+    try { state = merge(clone(base), JSON.parse($('bk-text').value)); save(); renderAll(); msg('Backup loaded.'); }
+    catch (err) { msg('That text is not a valid backup. Paste the full backup text.'); }
+  });
+  let resetArmed = false;
+  $('bk-reset').addEventListener('click', e => {
+    if (!resetArmed) { resetArmed = true; e.target.textContent = 'Click again to reset'; setTimeout(() => { resetArmed = false; e.target.textContent = 'Reset to defaults'; }, 4000); return; }
+    const tracker = state.tracker;
+    state = clone(base); state.startMonth = nowMonth(); state.selected = Math.min(3, state.scenarios.length - 1); state.tracker = tracker;
+    save(); renderAll(); msg('Defaults restored. Tracker months kept.');
+    e.target.textContent = 'Reset to defaults'; resetArmed = false;
+  });
+
+  window.addEventListener('hashchange', showView);
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  (mq.addEventListener ? mq.addEventListener('change', renderOutputs) : null);
+  new MutationObserver(renderOutputs).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  renderAll(); showView();
+})();
+</script>
+</body>
+</html>
