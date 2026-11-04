@@ -528,6 +528,13 @@ const matCache={};
 function mat(c,rough=.8,metal=0){const k=c+rough+metal;return matCache[k]||(matCache[k]=new THREE.MeshStandardMaterial({color:c,roughness:rough,metalness:metal}))}
 function shade(c,f){const col=new THREE.Color(c);col.offsetHSL(0,0,f);return '#'+col.getHexString()}
 function B(g,w,h,d,x,y,z,m){const b=new THREE.Mesh(unitBox,m);b.scale.set(Math.max(w,.005),Math.max(h,.005),Math.max(d,.005));b.position.set(x,y+h/2,z);b.castShadow=b.receiveShadow=true;g.add(b);return b}
+const rbCache={};
+function roundBoxGeo(w,h,d,r){r=Math.min(r,w/2-.001,h/2-.001,d/2-.001);const k=[w,h,d,r].map(v=>v.toFixed(3)).join();if(rbCache[k])return rbCache[k];
+ const g=new THREE.BoxGeometry(w,h,d,6,6,6),p=g.attributes.position,v=new THREE.Vector3(),c=new THREE.Vector3(),hx=w/2-r,hy=h/2-r,hz=d/2-r;
+ for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);c.set(Math.max(-hx,Math.min(hx,v.x)),Math.max(-hy,Math.min(hy,v.y)),Math.max(-hz,Math.min(hz,v.z)));
+  v.sub(c);if(v.lengthSq()>0)v.setLength(r);v.add(c);p.setXYZ(i,v.x,v.y,v.z)}
+ g.computeVertexNormals();return rbCache[k]=g}
+function RB(g,w,h,d,x,y,z,m,r){const b=new THREE.Mesh(roundBoxGeo(w,h,d,r),m);b.position.set(x,y+h/2,z);b.castShadow=b.receiveShadow=true;g.add(b);return b}
 function C(g,r,h,x,y,z,m,seg=24){const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg),m);c.position.set(x,y+h/2,z);c.castShadow=c.receiveShadow=true;g.add(c);return c}
 const BUILD={
  box(g,w,d,h,c){B(g,w,h,d,0,0,0,mat(c))},
@@ -568,16 +575,25 @@ const BUILD={
   for(const a of[-1,1])for(const b of[-1,1]){const wh=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.24,20),mat('#151515',.9));wh.rotation.z=Math.PI/2;wh.position.set(a*(w/2-.13),.34,b*(d/2-.75));wh.castShadow=true;g.add(wh)}},
  bbq(g,w,d,h,c){const m=mat(c,.4,.5);B(g,w,.85,d,0,0,0,m);B(g,w*.62,.3,d,0,.85,0,mat(shade(c,.1),.3,.6))},
  lounger(g,w,d,h,c){const m=mat(c,.9);B(g,w,.28,d,0,0,0,m);const b=B(g,w,.06,d*.38,0,0,-d/2+d*.17,m);b.rotation.x=.7;b.position.y=.28+d*.12},
- sanremo(g,w,d,h,c){// L-shape: left arm + 2 seats + corner along the back; armless-seat return on the right with outer arm
-  const m=mat(c,.55),top=mat(shade(c,.04),.5),base=mat(shade(c,-.25),.6),bd=Math.min(1.13,d*.6),a=.22,sh=.44,bh=Math.min(h-.16,.7);
-  B(g,w,.06,bd,0,0,-d/2+bd/2,base);B(g,bd,.06,d-bd,w/2-bd/2,0,-d/2+bd+(d-bd)/2,base);
-  B(g,w-a,sh-.1,bd-.22,a/2,.06,-d/2+.22+(bd-.22)/2,m);B(g,bd-a,sh-.1,d-bd,w/2-a-(bd-a)/2,.06,-d/2+bd+(d-bd)/2,m);
+ sanremo(g,w,d,h,c){// plush L-shape: rounded arms, deep puffy seat cushions, pillow back cushions (as in Nick Scali photos)
+  const m=mat(c,.5),cu=mat(shade(c,.03),.45),base=mat(shade(c,-.3),.6),bd=Math.min(1.13,d*.6),a=.22,t=.2,sh=.45,fh=Math.min(h-.2,.64);
+  const cx=w/2-a-(bd-a)/2,cw=bd-a;// corner / return column
+  // recessed dark plinth
+  RB(g,w-.06,.05,bd-.06,0,0,-d/2+bd/2,base,.01);RB(g,cw-.03,.05,d-bd,cx,0,-d/2+bd+(d-bd)/2-.03,base,.01);
+  // seat bases (upholstered frame under the cushions)
   const x0=-w/2+a,x1=w/2-bd,n=2,sw=(x1-x0)/n;
-  for(let i=0;i<n;i++)B(g,sw-.02,.1,bd-.24,x0+sw*(i+.5),sh-.06,-d/2+.23+(bd-.24)/2,top);
-  B(g,bd-a-.02,.1,bd-.24,w/2-a-(bd-a)/2,sh-.06,-d/2+.23+(bd-.24)/2,top);B(g,bd-a-.02,.1,d-bd-.02,w/2-a-(bd-a)/2,sh-.06,-d/2+bd+(d-bd)/2,top);
-  B(g,w,bh,.22,0,0,-d/2+.11,m);B(g,a,.62,bd,-w/2+a/2,0,-d/2+bd/2,m);B(g,a,.62,d,w/2-a/2,0,0,m);
-  for(let i=0;i<n;i++){const k=B(g,sw*.82,.46,.16,x0+sw*(i+.5),sh+.02,-d/2+.32,top);k.rotation.x=-.25}
-  const k=B(g,(bd-a)*.8,.46,.16,w/2-a-(bd-a)/2,sh+.02,-d/2+.32,top);k.rotation.x=-.25},
+  RB(g,x1-x0+cw,.24,bd-t,(x0+x1+cw)/2,.04,-d/2+t+(bd-t)/2,m,.05);RB(g,cw,.24,d-bd+.02,cx,.04,-d/2+bd+(d-bd)/2,m,.05);
+  // deep seat cushions with rounded, slightly overhanging fronts
+  const seat=(cw2,cd,x,z)=>{const k=RB(g,cw2,.19,cd,x,sh-.19,z,cu,.075);k.scale.y=1.04};
+  for(let i=0;i<n;i++)seat(sw-.015,bd-t+.02,x0+sw*(i+.5),-d/2+t+(bd-t)/2+.01);
+  seat(cw-.015,bd-t+.02,cx,-d/2+t+(bd-t)/2+.01);seat(cw-.015,d-bd-.01,cx,-d/2+bd+(d-bd)/2);
+  // low back frame and wide, soft rounded arms
+  RB(g,w,fh,t,0,.04,-d/2+t/2,m,.07);
+  RB(g,a,.62,bd,-w/2+a/2,.04,-d/2+bd/2,m,.09);RB(g,a,.62,d,w/2-a/2,.04,0,m,.09);
+  // plump pillow back cushions leaning on the frame
+  const pil=(pw,x,z,ry)=>{const k=RB(g,pw,.5,.22,0,0,0,cu,.1);k.position.set(x,sh+.24,z);k.rotation.set(-.22,ry,0,'YXZ');k.scale.z=1.1};
+  for(let i=0;i<n;i++)pil(sw*.86,x0+sw*(i+.5),-d/2+t+.13,0);
+  pil(cw*.8,cx-.05,-d/2+t+.13,0);pil(cw*.62,w/2-a-.14,-d/2+t+cw*.55,-Math.PI/2)},
  rattan(g,w,d,h,c){const m=mat(c,.6);B(g,w,h-.14,d,0,.14,0,m);const n=4,dw=(w-.06)/n;for(let i=0;i<n;i++)B(g,dw-.03,h-.22,.01,-w/2+.03+dw*(i+.5),.18,d/2,mat('#d9c08c',.95));
   [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([a,b])=>B(g,.035,.14,.035,a*(w/2-.05),0,b*(d/2-.05),m))},
  swivel(g,w,d,h,c){const m=mat(c,.85);C(g,.22,.06,0,0,0,mat('#3a3a3a',.4,.4));
@@ -590,7 +606,7 @@ const BUILD={
 const furnGroup=new THREE.Group();scene.add(furnGroup);
 let items=[],sel=null,nextId=1;
 function buildItem(it){
- if(it.obj){furnGroup.remove(it.obj);it.obj.traverse(o=>{if(o.geometry&&o.geometry!==unitBox)o.geometry.dispose()})}
+ if(it.obj){furnGroup.remove(it.obj);it.obj.traverse(o=>{if(o.geometry&&o.geometry!==unitBox&&!Object.values(rbCache).includes(o.geometry))o.geometry.dispose()})}
  const g=new THREE.Group(),inner=new THREE.Group();g.add(inner);
  (BUILD[it.type]||BUILD.box)(inner,it.w/100,it.d/100,it.h/100,it.color,{elev:(it.elev||0)/100});
  g.position.set(it.x,(it.elev||0)/100,it.z);g.rotation.y=THREE.MathUtils.degToRad(it.rot||0);g.userData.item=it;
