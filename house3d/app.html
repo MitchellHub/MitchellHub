@@ -125,6 +125,11 @@ input[type=color]{padding:0;height:32px;width:100%}
       <button id="wFull" aria-pressed="true">Walls</button>
       <button id="wLow" aria-pressed="false">Cutaway</button>
     </div>
+    <div class="panel seg" role="group" aria-label="Flooring">
+      <button id="fCur" aria-pressed="true">Current floors</button>
+      <button id="fSand" aria-pressed="false">Avoca tile</button>
+      <button id="fBB" aria-pressed="false">Blackbutt</button>
+    </div>
     <div class="panel seg" role="group" aria-label="Tools">
       <button id="tLabels" aria-pressed="true">Labels</button>
       <button id="tMeasure" aria-pressed="false">Measure</button>
@@ -418,7 +423,7 @@ if(HOUSE==='heddon'){
   [915,331,963,349,2.1,'parts','robe',0,[[915,331,963,349,0,2.1,'htimber']]],
   [966,331,1015,349,2.1,'parts','robe',0,[[966,331,1015,349,0,2.1,'htimber']]]);
  FLOORS.carpet=[[915,121,1015,236],[915,239,1015,330],[915,350,1015,437],[1050,121,1125,246],[1017,203,1048,440],[915,440,1048,562],[915,562,1017,648],[792,567,915,697],[915,648,1017,651]];
- FLOORS.tile2=[[1048,442,1125,562],[915,651,1017,697],[1050,374,1125,420]];
+ FLOORS.tile2=[[1048,442,1125,562],[915,651,1017,697]];FLOORS.tile2wet=[[1050,374,1125,420]];
  FLOORS.tile=[[1017,121,1047,200],[1050,249,1125,316],[1050,319,1125,371]];
  FLOORS.concrete=[[1021,565,1125,736],[1130,537,1207,708]];
  FLOORS.paver=[[787,433,910,562],[920,702,1017,740]];
@@ -451,6 +456,18 @@ Object.assign(sun.shadow.camera,{left:-20,right:20,top:20,bottom:-20,near:1,far:
 /* textures */
 function canvasTex(w,h,draw,rep){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.encoding=THREE.sRGBEncoding;t.anisotropy=8;if(rep)t.repeat.set(rep[0],rep[1]);return t}
 function rnd(s){return()=>{s=(s*16807)%2147483647;return s/2147483647}}
+// Tilemall Avoca 600x300 Matt Bianco (travertine look): straight stack, long side north-south; one texture tile = 1.2 x 1.2 m
+const sandTex=canvasTex(512,512,(g,w,h)=>{g.fillStyle='#cdc7bd';g.fillRect(0,0,w,h);const r=rnd(23);const tw=w/4,th=h/2;
+ for(let row=0;row<2;row++)for(let col=0;col<4;col++){const x0=col*tw+1,y0=row*th+1,ww=tw-2,hh=th-2;
+  g.fillStyle=`hsl(${36+r()*6},${14+r()*6}%,${88+r()*2}%)`;g.fillRect(x0,y0,ww,hh);
+  for(let k=0;k<26;k++){const vx=x0+r()*ww,vw=1+r()*4;g.globalAlpha=.05+r()*.09;g.fillStyle=r()>.35?'#c9b99f':'#ffffff';
+   let y=y0+r()*hh*.3;const len=hh*(.3+r()*.7);g.fillRect(vx,y,vw,Math.min(len,y0+hh-y))}
+  g.globalAlpha=.05;for(let k=0;k<60;k++){g.fillStyle='#b8a88e';g.fillRect(x0+r()*ww,y0+r()*hh,1+r()*2,1+r()*2)}g.globalAlpha=1}});
+const bbTex=canvasTex(512,512,(g,w,h)=>{const r=rnd(29);const pw=h/8;
+ for(let row=0;row<8;row++){let x=-r()*w;while(x<w){const len=w*(0.5+r()*0.5);g.fillStyle=`hsl(${32+r()*6},${34+r()*10}%,${62+r()*9}%)`;g.fillRect(x,row*pw,len,pw);
+  g.globalAlpha=.1;for(let k=0;k<8;k++){g.fillStyle=r()>.5?'#7a5434':'#f3e2c6';g.fillRect(x,row*pw+r()*pw,len,1+r()*2)}g.globalAlpha=.15;for(let k=0;k<3;k++){g.fillStyle='#4a2e18';g.fillRect(x+r()*len,row*pw+r()*pw,2+r()*4,1)}g.globalAlpha=1;
+  g.fillStyle='rgba(60,40,20,.45)';g.fillRect(x,row*pw,1.5,pw);x+=len}
+  g.fillStyle='rgba(60,40,20,.4)';g.fillRect(0,row*pw,w,1.2)}});
 const timberTex=canvasTex(512,512,(g,w,h)=>{const r=rnd(7);const pw=h/8;
  for(let row=0;row<8;row++){let x=-r()*w;while(x<w){const len=w*(0.45+r()*0.6);const l=42+r()*12,c=`hsl(${25+r()*7},${36+r()*12}%,${l}%)`;g.fillStyle=c;g.fillRect(x,row*pw,len,pw);
   g.globalAlpha=.08;for(let k=0;k<6;k++){g.fillStyle=r()>.5?'#3b2412':'#f5d9b5';g.fillRect(x,row*pw+r()*pw,len,1+r()*2)}g.globalAlpha=1;
@@ -479,6 +496,8 @@ const M={
  curtain:new THREE.MeshStandardMaterial({color:0xece6da,roughness:1,transparent:true,opacity:.85}),
  doorTimber:new THREE.MeshStandardMaterial({color:0x3a2a20,roughness:.6}),
  carpet:new THREE.MeshStandardMaterial({map:carpetTex,roughness:1}),
+ sand:new THREE.MeshStandardMaterial({map:sandTex,roughness:.6}),
+ blackbutt:new THREE.MeshStandardMaterial({map:bbTex,roughness:.55}),
  tile2:new THREE.MeshStandardMaterial({map:tile2Tex,roughness:.45}),
  htimber:new THREE.MeshStandardMaterial({color:0xb66e23,roughness:.5}),
  lam:new THREE.MeshStandardMaterial({color:0xc4b4b2,roughness:.35}),
@@ -594,17 +613,27 @@ function buildWalls(){
 }
 buildWalls();
 // floors with world-space UVs
-function floorRect(r,mat,y,scale,boards){const x0=X(r[0]),z0=Z(r[1]),x1=X(r[2]),z1=Z(r[3]);
+function mapUV(g,scale,boards){const p=g.attributes.position,uv=g.attributes.uv;
+ for(let i=0;i<p.count;i++)boards?uv.setXY(i,-p.getZ(i)/boards,p.getX(i)/1.08):uv.setXY(i,p.getX(i)/scale,-p.getZ(i)/scale);uv.needsUpdate=true}
+const floorMeshes=[];
+function floorRect(r,mat,y,scale,boards,cat){const x0=X(r[0]),z0=Z(r[1]),x1=X(r[2]),z1=Z(r[3]);
  const g=new THREE.PlaneGeometry(x1-x0,z1-z0);g.rotateX(-Math.PI/2);g.translate((x0+x1)/2,y,(z0+z1)/2);
- const p=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<p.count;i++)boards?uv.setXY(i,-p.getZ(i)/2.6,p.getX(i)/1.08):uv.setXY(i,p.getX(i)/scale,-p.getZ(i)/scale);
- const m=new THREE.Mesh(g,mat);m.receiveShadow=true;house.add(m);return m}
+ mapUV(g,scale,boards===true?2.6:boards);
+ const m=new THREE.Mesh(g,mat);m.receiveShadow=true;house.add(m);if(cat){m.userData.floor={cat,mat,scale,boards:boards===true?2.6:boards};floorMeshes.push(m)}return m}
+// flooring options: dry areas (living, bedrooms, kitchen, halls) and wet areas (bathrooms, laundry); blackbutt stays out of wet areas
+function setFloor(mode){floorMeshes.forEach(m=>{const f=m.userData.floor;
+ if(mode==='sand'){m.material=M.sand;mapUV(m.geometry,1.2,0)}
+ else if(mode==='bb'&&f.cat==='dry'){m.material=M.blackbutt;mapUV(m.geometry,0,3.2)}
+ else{m.material=f.mat;mapUV(m.geometry,f.scale,f.boards)}});
+ press(['fCur','fSand','fBB'],{cur:'fCur',sand:'fSand',bb:'fBB'}[mode]);try{localStorage.setItem('floor-'+HOUSE,mode)}catch(e){}}
 if(HOUSE==='conquest')[600,650,700].forEach(py=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(.045,.06,.3,20),M.pendant);m.position.set(X(695),2.1,Z(py));ceilGroup.add(m);
  const c=new THREE.Mesh(new THREE.CylinderGeometry(.004,.004,1.2,6),M.black);c.position.set(X(695),2.85,Z(py));ceilGroup.add(c)});
 const ceil=r=>{const c=floorRect(r,M.ceiling,H,99);c.castShadow=true;house.remove(c);ceilGroup.add(c)};
-FLOORS.timber.forEach(r=>{floorRect(r,M.timber,0.001,0,true);ceil(r)});
-FLOORS.tile.forEach(r=>{floorRect(r,M.tile,0.004,1.2);ceil(r)});
-(FLOORS.carpet||[]).forEach(r=>{floorRect(r,M.carpet,0.001,1.5);ceil(r)});
-(FLOORS.tile2||[]).forEach(r=>{floorRect(r,M.tile2,0.004,0.9);ceil(r)});
+FLOORS.timber.forEach(r=>{floorRect(r,M.timber,0.001,0,true,'dry');ceil(r)});
+FLOORS.tile.forEach(r=>{floorRect(r,M.tile,0.004,1.2,0,'wet');ceil(r)});
+(FLOORS.carpet||[]).forEach(r=>{floorRect(r,M.carpet,0.001,1.5,0,'dry');ceil(r)});
+(FLOORS.tile2||[]).forEach(r=>{floorRect(r,M.tile2,0.004,0.9,0,'dry');ceil(r)});
+(FLOORS.tile2wet||[]).forEach(r=>{floorRect(r,M.tile2,0.004,0.9,0,'wet');ceil(r)});
 FLOORS.concrete.forEach(r=>floorRect(r,M.concrete,0.001,4));
 FLOORS.paver.forEach(r=>floorRect(r,M.paver,-0.02,2.4));
 // site: 16 m x 34 m block traced from the site plan
@@ -846,6 +875,8 @@ if(innerWidth<=760)setSide(false);
 function press(ids,on){ids.forEach(i=>$(i).setAttribute('aria-pressed',i===on))}
 $('wFull').onclick=()=>{press(['wFull','wLow'],'wFull');wallH=H;buildWalls()};
 $('wLow').onclick=()=>{press(['wFull','wLow'],'wLow');wallH=1.0;buildWalls()};
+$('fCur').onclick=()=>setFloor('cur');$('fSand').onclick=()=>setFloor('sand');$('fBB').onclick=()=>setFloor('bb');
+{let f='cur';try{f=localStorage.getItem('floor-'+HOUSE)||'cur'}catch(e){}if(f!=='cur')setFloor(f)}
 let showLabels=true;$('tLabels').onclick=()=>{showLabels=!showLabels;$('tLabels').setAttribute('aria-pressed',showLabels)};
 let snap=true;$('tSnap').onclick=()=>{snap=!snap;$('tSnap').setAttribute('aria-pressed',snap)};
 let measuring=false,mPts=[];const mLine=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xc0392b,depthTest:false}));mLine.renderOrder=9;scene.add(mLine);
