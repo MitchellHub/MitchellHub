@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>21 Conquest Close</title>
+<title>3D House Renderer</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -405,14 +405,12 @@ if(HOUSE==='heddon'){
   [1048,318,1050,345,'','door'],[1048,395,1050,420,'','door'],[1062,316,1087,319,'','door'],[1017,668,1021,687,'','door'],[1075,562,1100,565,'','door']);
  // joinery and fittings from the plan and photos: [x0,y0,x1,y1,height,'parts',label,base,[[x0,y0,x1,y1,yb,yt,material]...]]
  FIXTURES.push(
-  [1050,442,1077,458,0.9,'parts','kitchen bench',0,[[1050,442,1077,458,0,.86,'htimber'],[1050,442,1077,458,.86,.9,'lam']]],
-  [1095,442,1107,458,0.9,'parts','kitchen bench',0,[[1095,442,1107,458,0,.86,'htimber'],[1095,442,1107,458,.86,.9,'lam']]],
-  [1077,442,1095,463,0.92,'parts','stove',0,[[1077,442,1095,462,0,.9,'porcelain'],[1078,443,1094,461,.9,.915,'black'],[1077,442,1095,444,.9,1.02,'porcelain']]],
-  [1050,458,1066,507,0.9,'parts','kitchen bench',0,[[1050,458,1066,507,0,.86,'htimber'],[1049,458,1066,508,.86,.9,'lam']]],
-  [1107,442,1125,558,0.9,'parts','kitchen bench',0,[[1107,442,1125,558,0,.86,'htimber'],[1106,442,1125,558,.86,.9,'lam'],[1110,487,1123,518,.9,.905,'steel']]],
-  [1050,442,1125,453,2.1,'parts','overhead cupboards',1.45,[[1050,442,1077,453,1.45,2.1,'htimber'],[1095,442,1125,453,1.45,2.1,'htimber'],[1077,442,1095,454,1.55,1.65,'porcelain']]],
-  [1050,442,1125,443.2,1.45,'parts','splashback',.9,[[1050,442,1125,443.2,.9,1.45,'htile'],[1123.8,443,1125,480,.9,1.45,'htile'],[1123.8,525,1125,558,.9,1.45,'htile'],[1123.8,480,1125,525,.9,1.05,'htile']]],
-  [1105,543,1125,562,2.1,'parts','pantry',0,[[1105,543,1125,562,0,2.1,'htimber']]],
+  [1075,442,1104,459,0.9,'parts','kitchen bench',0,[[1075,442,1104,459,0,.86,'kcab'],[1075,442,1104,460,.86,.9,'kstone'],[1078,444,1096,457,.9,.91,'black'],[1079,459,1095,459.4,.12,.8,'black']]],
+  [1050,442,1075,512,0.9,'parts','peninsula',0,[[1052,442,1075,512,0,.86,'kcab'],[1050,442,1052,512,0,.86,'kpanel'],[1050,510,1075,512,0,.86,'kpanel'],[1049,442,1075,513,.86,.9,'kstone']]],
+  [1104,442,1125,535,0.9,'parts','kitchen bench',0,[[1104,442,1125,535,0,.86,'kcab'],[1103,442,1125,535,.86,.9,'kstone'],[1108,494,1121,510,.9,.904,'steel'],[1121.5,501,1122.5,503,.9,1.22,'steel'],[1115,501.4,1122.5,502.6,1.18,1.22,'steel'],[1103.6,466,1104,486,.1,.82,'black']]],
+  [1103,535,1125,562,1.78,'parts','fridge',0,[[1103,535,1125,562,0,1.78,'steel'],[1102.8,548,1103,549,.75,1.75,'black'],[1102.8,535.5,1103,561.5,.72,.74,'black'],[1104,535,1125,562,1.86,2.4,'kcab']]],
+  [1066,442,1125,453,2.1,'parts','overhead cupboards',1.45,[[1066,442,1078,453,1.45,2.1,'kcab'],[1096,442,1110,453,1.45,2.1,'kcab'],[1078,442,1096,452,1.62,1.7,'steel'],[1083,442,1091,448,1.7,2.4,'steel']]],
+  [1075,442,1125,442.7,1.45,'parts','splashback',.9,[[1066,442,1125,442.7,.9,1.45,'subway'],[1124.3,442,1125,480,.9,1.45,'subway'],[1124.3,525,1125,535,.9,1.45,'subway'],[1124.3,480,1125,525,.9,1.05,'subway']]],
   [1050,250,1079,280,0.04,'parts','shower',0,[[1050,250,1079,280,0,.04,'tray'],[1078.6,250,1079,280,0,2,'glass'],[1050,279.6,1079,280,0,2,'glass']]],
   [1082,251,1124,270,0.55,'parts','bath',0,[[1082,251,1124,270,0,.5,'htile'],[1084,253,1122,268,.5,.55,'porcelain']]],
   [1050,360,1087,371,0.86,'parts','vanity',0,[[1050,360,1087,371,0,.82,'white'],[1050,359,1087,371,.82,.86,'porcelain'],[1060,370.5,1078,371,1.1,1.75,'mirror']]],
@@ -491,6 +489,10 @@ const brickTex=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#d9cdbb';g.fillRect(0,0,
  for(let row=0;row<11;row++){const off=row%2?bw/2:0;for(let x=-bw;x<w+bw;x+=bw){g.fillStyle=`hsl(${16+r()*8},${45+r()*12}%,${38+r()*11}%)`;g.fillRect(x+off+2,row*bh+2,bw-4,bh-3)}}});
 const carpetTex=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#8c939d';g.fillRect(0,0,w,h);const r=rnd(13);for(let i=0;i<9000;i++){g.fillStyle=`hsla(215,${6+r()*6}%,${46+r()*20}%,.35)`;g.fillRect(r()*w,r()*h,1.2,1.2)}});
 const tile2Tex=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#b9ad9d';g.fillRect(0,0,w,h);const r=rnd(17);for(let i=0;i<2;i++)for(let j=0;j<2;j++){g.fillStyle=`hsl(36,${16+r()*5}%,${76+r()*4}%)`;g.fillRect(i*128+1.5,j*128+1.5,125,125)}});
+// white 150 x 75 mm subway tiles, half bond; one texture tile = 0.6 x 0.6 m
+const subwayTex=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#c9c7c2';g.fillRect(0,0,w,h);const r=rnd(31),tw=w/4,th=h/8;
+ for(let row=0;row<8;row++){const off=row%2?tw/2:0;for(let x=-tw;x<w+tw;x+=tw){g.fillStyle=`hsl(40,${6+r()*4}%,${91+r()*3}%)`;g.fillRect(x+off+1.2,row*th+1.2,tw-2.4,th-2.4)}}});
+subwayTex.userData={world:[0.6,0.6]};
 const grassTex=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#7d9150';g.fillRect(0,0,w,h);const r=rnd(9);for(let i=0;i<4000;i++){g.fillStyle=`hsla(${72+r()*20},40%,${30+r()*25}%,.5)`;g.fillRect(r()*w,r()*h,1.5,1.5)}});
 
 const M={
@@ -515,6 +517,11 @@ const M={
  lam:new THREE.MeshStandardMaterial({color:0xc4b4b2,roughness:.35}),
  htile:new THREE.MeshStandardMaterial({color:0xecedeb,roughness:.25}),
  band:new THREE.MeshStandardMaterial({color:0xa86a3c,roughness:.7}),
+ kcab:new THREE.MeshStandardMaterial({color:0x544c42,roughness:.6}),
+ kpanel:new THREE.MeshStandardMaterial({color:0x3b3c38,roughness:.55}),
+ kstone:new THREE.MeshStandardMaterial({color:0xcfcfcb,roughness:.35}),
+ kred:new THREE.MeshStandardMaterial({color:0x6e1f1f,roughness:.9}),
+ subway:new THREE.MeshStandardMaterial({map:subwayTex,roughness:.25}),
  post:new THREE.MeshStandardMaterial({color:0xd8d4cc,roughness:.5}),
  mirror:new THREE.MeshStandardMaterial({color:0xcfd9de,roughness:.08,metalness:0}),
  darkglass:new THREE.MeshStandardMaterial({color:0x1d1f22,roughness:.15,metalness:.2}),
@@ -598,8 +605,8 @@ function drawFixture(f,cap){const[a,b,c,d,h,kind]=f;const x0=X(a),z0=Z(b),x1=X(c
  }}
 let wallH=H;
 // thin wall lining inside a room, with gaps at doors and windows (window: lining below the sill and above the head)
-function lineRoom(r,mat,y0,y1){const t=.008,pad=1.5,[a,b,c,d]=r;
- const sides=[['n',a,c,b],['s',a,c,d],['w',b,d,a],['e',b,d,c]];
+function lineRoom(r,mat,y0,y1,only='nsew'){const t=.008,pad=1.5,[a,b,c,d]=r;
+ const sides=[['n',a,c,b],['s',a,c,d],['w',b,d,a],['e',b,d,c]].filter(x=>only.includes(x[0]));
  sides.forEach(([sd,u0,u1,line])=>{const horiz=sd==='n'||sd==='s';const holes=[];
   [...WINDOWS.map(w=>[w,'w']),...OPENINGS.map(o=>[o,'o'])].forEach(([q,k])=>{const near=horiz?(Math.abs(q[1]-line)<pad+6||Math.abs(q[3]-line)<pad+6)&&q[0]<u1&&q[2]>u0:(Math.abs(q[0]-line)<pad+6||Math.abs(q[2]-line)<pad+6)&&q[1]<u1&&q[3]>u0;
    if(near)holes.push(horiz?[q[0],q[2],k,q]:[q[1],q[3],k,q])});
@@ -617,6 +624,7 @@ function buildWalls(){
   if(r[5]==='garage'&&!low){const g=pane(r,0,2.2,M.garage);g.scale.z=Math.max(g.scale.z,.05)}});
  FIXTURES.forEach(f=>drawFixture(f,low?Math.max(top,1):9));
  if(!low&&FLOORS.tileWalls)FLOORS.tileWalls.forEach(r=>lineRoom(r,M.htile,0,2.1));
+ if(!low&&HOUSE==='heddon')lineRoom([1048,442,1125,562],M.kred,0,H,'nes');// planned kitchen: deep red feature walls
  if(!low&&HOUSE==='heddon')[...SOLID,...WINDOWS,...OPENINGS].forEach(r=>{const e=.006;boxM(X(r[0])-e,Z(r[1])-e,X(r[2])+e,Z(r[3])+e,2.1,H,M.band,wallGroup,false)});
  if(!low&&HOUSE==='conquest'){// sheer curtains stacked beside the sliders, front door (dark timber, shown open)
   boxM(X(722),Z(318),X(740),Z(326),0,2.4,M.curtain);boxM(X(467),Z(750),X(475),Z(768),0,2.4,M.curtain);
@@ -998,7 +1006,7 @@ function tick(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(mode==='wa
 renderCatalogue();
 let stored=null,old=null;try{stored=JSON.parse(localStorage.getItem(KEY)||'null');old=JSON.parse(localStorage.getItem(OLDKEY)||'null')}catch(e){}
 // house switch: the link hash picks the house; switching reloads the page with that house
-$('hName').textContent=HOUSES[HOUSE].name;$('hSub').textContent=HOUSES[HOUSE].sub;document.title=HOUSES[HOUSE].name;
+$('hName').textContent=HOUSES[HOUSE].name;$('hSub').textContent=HOUSES[HOUSE].sub;document.title=HOUSES[HOUSE].name+' · 3D House Renderer';
 press(['hConquest','hHeddon'],HOUSE==='conquest'?'hConquest':'hHeddon');$('empty').hidden=true;
 $('hConquest').onclick=()=>{if(HOUSE!=='conquest'){location.hash='conquest'}};$('hHeddon').onclick=()=>{if(HOUSE!=='heddon'){location.hash='heddon-greta'}};
 addEventListener('hashchange',()=>{const want=location.hash==='#heddon-greta'?'heddon':'conquest';if(want!==HOUSE)location.reload()});
