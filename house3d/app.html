@@ -812,7 +812,7 @@ const badCache=new WeakMap();
 function badMat(m){if(badCache.has(m))return badCache.get(m);const b=m.clone();b.emissive=new THREE.Color(0xd02a1a);b.emissiveIntensity=.45;badCache.set(m,b);return b}
 
 /* ---------- state ---------- */
-const KEY='conquest21-layout-v2'+(HOUSE==='conquest'?'':'-'+HOUSE),OLDKEY='conquest21-layout-v1';
+const KEY='conquest21-layout-v2'+(HOUSE==='conquest'?'':'-'+HOUSE+'-b'),OLDKEY=HOUSE==='conquest'?'conquest21-layout-v1':'conquest21-layout-v2-'+HOUSE;
 function serial(){return items.map(({obj,...r})=>r)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({v:1,items:serial()}))}catch(e){}renderList()}
 function load(arr){furnGroup.clear();items=[];sel=null;showProps();arr.forEach(r=>{const it={...r,id:nextId++};const c=CAT_BY_NAME[it.name];if(c&&c[7]&&c[7].cfg){it.type=c[1];it.cfg=it.cfg||c[7].cfg}items.push(it);buildItem(it)});refreshSel();save()}
@@ -828,6 +828,13 @@ function lounge(){return[
 ]}
 const FAMILY={x0:X(467),x1:X(822),z0:Z(318),z1:Z(560)};
 const inFamily=it=>it.x>FAMILY.x0&&it.x<FAMILY.x1&&it.z>FAMILY.z0&&it.z<FAMILY.z1;
+// 76 Main Road: typical living and dining furniture (living 4.2 x 4.5 m, TV on the west wall; dining 3.5 x 3.0 m)
+function heddonFurniture(){const L=[
+ P('Entertainment unit',804,632,90),P('TV 65"',806,632,90,{elev:50}),P('Rug 230 × 160',852,632,90),P('Coffee table',852,632,90),
+ P('3-seat sofa',880,632,-90),P('Floor lamp',804,578,0),P('Indoor plant',806,683,0),
+ P('Dining table 6-seat',966,605,0)];
+ for(const dx of[-16,0,16]){L.push(P('Dining chair',966+dx,586,0));L.push(P('Dining chair',966+dx,624,180))}
+ L.push(P('Indoor plant',1008,572,0));return L}
 function example(){const L=[...lounge(),
  P('Dining table 6-seat',566,680,90),
  P('Fridge – French door',795,771,-90),P('Bar stool',652,615,90),P('Bar stool',652,650,90),P('Bar stool',652,685,90),
@@ -995,7 +1002,7 @@ $('hName').textContent=HOUSES[HOUSE].name;$('hSub').textContent=HOUSES[HOUSE].su
 press(['hConquest','hHeddon'],HOUSE==='conquest'?'hConquest':'hHeddon');$('empty').hidden=true;
 $('hConquest').onclick=()=>{if(HOUSE!=='conquest'){location.hash='conquest'}};$('hHeddon').onclick=()=>{if(HOUSE!=='heddon'){location.hash='heddon-greta'}};
 addEventListener('hashchange',()=>{const want=location.hash==='#heddon-greta'?'heddon':'conquest';if(want!==HOUSE)location.reload()});
-if(HOUSE!=='conquest')load(stored&&Array.isArray(stored.items)?stored.items:[]);
+if(HOUSE!=='conquest')load(stored&&Array.isArray(stored.items)?stored.items:[...(old&&Array.isArray(old.items)?old.items:[]),...heddonFurniture()]);
 else if(stored&&Array.isArray(stored.items))load(stored.items);
 else if(old&&Array.isArray(old.items))load([...old.items.filter(i=>!inFamily(i)),...lounge()]);// keep other rooms, refit the lounge
 else load(example());
