@@ -91,6 +91,9 @@ input[type=color]{padding:0;height:32px;width:100%}
 #dlg h3{margin:0 0 6px;font-family:var(--f-display)}
 #dlg textarea{width:100%;box-sizing:border-box;height:200px;font-family:var(--f-mono);font-size:11.5px;border:1px solid var(--line);border-radius:4px;background:var(--panel-2);padding:8px}
 #mobToggle{display:none}
+#empty{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,calc(100% - 32px));padding:14px 16px;box-sizing:border-box}
+#empty h3{margin:0 0 6px;font-family:var(--f-display)}
+#empty p{margin:6px 0;color:var(--muted);line-height:1.45}
 @media (max-width:760px){
   #side{top:auto;height:46%;width:auto;right:max(10px,env(safe-area-inset-right,0px))}
   #side.closed{display:none}
@@ -108,7 +111,11 @@ input[type=color]{padding:0;height:32px;width:100%}
   <div id="labels"></div>
 
   <div id="bar">
-    <div class="panel brand"><b>21 Conquest Close</b><span>Rutherford NSW · 229 m² internal</span></div>
+    <div class="panel brand"><b id="hName">21 Conquest Close</b><span id="hSub">Rutherford NSW · 229 m² internal</span></div>
+    <div class="panel seg" role="group" aria-label="House">
+      <button id="hConquest" aria-pressed="true">21 Conquest Cl</button>
+      <button id="hHeddon" aria-pressed="false">76 Main Rd</button>
+    </div>
     <div class="panel seg" role="group" aria-label="View">
       <button id="vOrbit" aria-pressed="true">3D</button>
       <button id="vPlan" aria-pressed="false">Plan</button>
@@ -182,6 +189,7 @@ input[type=color]{padding:0;height:32px;width:100%}
     <span></span><button data-k="f" aria-label="Walk forward">▲</button><span></span>
     <button data-k="l" aria-label="Step left">◀</button><button data-k="b" aria-label="Walk back">▼</button><button data-k="r" aria-label="Step right">▶</button>
   </div>
+  <div id="empty" class="panel" hidden><h3>76 Main Road, Heddon Greta</h3><p>The floor plan for this house is not loaded yet. Send the listing floor plan and photos, and the walls, windows and fittings will be traced here at scale.</p><p>Furniture you add now is saved for this house.</p></div>
   <div id="hint" class="panel">Drag empty space to orbit · right-drag or two fingers to pan · scroll to zoom · drag furniture to move · R rotates</div>
 
   <div id="dlg" hidden>
@@ -200,6 +208,8 @@ input[type=color]{padding:0;height:32px;width:100%}
 (()=>{
 'use strict';
 /* ---------- Plan geometry (pixels on the listing plan, 53.6 px = 1 m) ---------- */
+const HOUSES={conquest:{name:'21 Conquest Close',sub:'Rutherford NSW · 229 m² internal'},heddon:{name:'76 Main Road',sub:'Heddon Greta NSW · 690 m² block'}};
+const HOUSE=location.hash==='#heddon-greta'?'heddon':'conquest';
 const S=53.6, OX=357, OY=111, H=2.55;
 const X=p=>(p-OX)/S, Z=p=>(p-OY)/S;
 
@@ -353,6 +363,7 @@ function applySky(){scene.background=new THREE.Color(css('--sky')||'#dfe7ee')}
 applySky();matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applySky);
 new MutationObserver(applySky).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
+if(HOUSE!=='conquest'){[SOLID,WINDOWS,OPENINGS,FIXTURES,POSTS,ROOMS].forEach(a=>a.length=0);Object.keys(FLOORS).forEach(k=>FLOORS[k]=[])}
 const CX=X(709), CZ=Z(760);
 const persp=new THREE.PerspectiveCamera(50,1,0.05,300);
 persp.position.set(CX-9,17,CZ+16);
@@ -483,7 +494,7 @@ function buildWalls(){
   if(r[5]==='slider'){if(low)pane(r,0,top,M.glass);else glazing(r,0,2.1)}
   if(r[5]==='garage'&&!low){const g=pane(r,0,2.2,M.garage);g.scale.z=Math.max(g.scale.z,.05)}});
  FIXTURES.forEach(f=>drawFixture(f,low?Math.max(top,1):9));
- if(!low){// sheer curtains stacked beside the sliders, front door (dark timber, shown open)
+ if(!low&&HOUSE==='conquest'){// sheer curtains stacked beside the sliders, front door (dark timber, shown open)
   boxM(X(722),Z(318),X(740),Z(326),0,2.4,M.curtain);boxM(X(467),Z(750),X(475),Z(768),0,2.4,M.curtain);
   boxM(X(683),Z(1206),X(686),Z(1250),0,2.1,M.doorTimber)}
  POSTS.forEach(p=>boxM(X(p[0]),Z(p[1]),X(p[2]),Z(p[3]),0,low?top:2.7,M.brick));
@@ -494,7 +505,7 @@ function floorRect(r,mat,y,scale,boards){const x0=X(r[0]),z0=Z(r[1]),x1=X(r[2]),
  const g=new THREE.PlaneGeometry(x1-x0,z1-z0);g.rotateX(-Math.PI/2);g.translate((x0+x1)/2,y,(z0+z1)/2);
  const p=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<p.count;i++)boards?uv.setXY(i,-p.getZ(i)/2.6,p.getX(i)/1.08):uv.setXY(i,p.getX(i)/scale,-p.getZ(i)/scale);
  const m=new THREE.Mesh(g,mat);m.receiveShadow=true;house.add(m);return m}
-[600,650,700].forEach(py=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(.045,.06,.3,20),M.pendant);m.position.set(X(695),2.1,Z(py));ceilGroup.add(m);
+if(HOUSE==='conquest')[600,650,700].forEach(py=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(.045,.06,.3,20),M.pendant);m.position.set(X(695),2.1,Z(py));ceilGroup.add(m);
  const c=new THREE.Mesh(new THREE.CylinderGeometry(.004,.004,1.2,6),M.black);c.position.set(X(695),2.85,Z(py));ceilGroup.add(c)});
 const ceil=r=>{const c=floorRect(r,M.ceiling,H,99);c.castShadow=true;house.remove(c);ceilGroup.add(c)};
 FLOORS.timber.forEach(r=>{floorRect(r,M.timber,0.001,0,true);ceil(r)});
@@ -503,7 +514,8 @@ FLOORS.concrete.forEach(r=>floorRect(r,M.concrete,0.001,4));
 FLOORS.paver.forEach(r=>floorRect(r,M.paver,-0.02,2.4));
 // site: 16 m x 34 m block traced from the site plan
 const BX0=-1.6,BX1=14.4,BZ0=-6.0,BZ1=28.0;
-(()=>{const g=new THREE.PlaneGeometry(BX1-BX0,BZ1-BZ0);g.rotateX(-Math.PI/2);g.translate((BX0+BX1)/2,-0.04,(BZ0+BZ1)/2);
+if(HOUSE!=='conquest'){const m=new THREE.Mesh(new THREE.PlaneGeometry(60,60),M.grass);m.rotation.x=-Math.PI/2;m.position.set(CX,-0.04,CZ);m.receiveShadow=true;scene.add(m)}
+else (()=>{const g=new THREE.PlaneGeometry(BX1-BX0,BZ1-BZ0);g.rotateX(-Math.PI/2);g.translate((BX0+BX1)/2,-0.04,(BZ0+BZ1)/2);
  const uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*8,uv.getY(i)*17);
  const m=new THREE.Mesh(g,M.grass);m.receiveShadow=true;scene.add(m);
  const street=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.MeshStandardMaterial({color:0xcfd2c8,roughness:1}));street.rotation.x=-Math.PI/2;street.position.set(CX,-0.06,CZ);scene.add(street);
@@ -653,7 +665,7 @@ const badCache=new WeakMap();
 function badMat(m){if(badCache.has(m))return badCache.get(m);const b=m.clone();b.emissive=new THREE.Color(0xd02a1a);b.emissiveIntensity=.45;badCache.set(m,b);return b}
 
 /* ---------- state ---------- */
-const KEY='conquest21-layout-v2',OLDKEY='conquest21-layout-v1';
+const KEY='conquest21-layout-v2'+(HOUSE==='conquest'?'':'-'+HOUSE),OLDKEY='conquest21-layout-v1';
 function serial(){return items.map(({obj,...r})=>r)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({v:1,items:serial()}))}catch(e){}renderList()}
 function load(arr){furnGroup.clear();items=[];sel=null;showProps();arr.forEach(r=>{const it={...r,id:nextId++};const c=CAT_BY_NAME[it.name];if(c&&c[7]&&c[7].cfg){it.type=c[1];it.cfg=it.cfg||c[7].cfg}items.push(it);buildItem(it)});refreshSel();save()}
@@ -754,7 +766,7 @@ function hint(t){$('hint').textContent=t||({orbit:DEFAULT_HINT,plan:'Drag to pan
 const look={yaw:0,pitch:0};
 function setMode(m){mode=m;press(['vOrbit','vPlan','vWalk'],{orbit:'vOrbit',plan:'vPlan',walk:'vWalk'}[m]);
  orbit.enabled=m==='orbit';planCtl.enabled=m==='plan';sun.position.set(m==='plan'?CX+2:CX+12,m==='plan'?40:26,m==='plan'?CZ-1:CZ-8);camera=m==='plan'?ortho:persp;pad.hidden=m!=='walk';ceilGroup.visible=m==='walk';hemi.intensity=m==='walk'?1.15:.95;
- if(m==='walk'){saved3d={p:persp.position.clone(),t:orbit.target.clone()};persp.position.set(X(708),1.6,Z(1215));look.yaw=0;look.pitch=0;applyLook()}
+ if(m==='walk'){saved3d={p:persp.position.clone(),t:orbit.target.clone()};persp.position.set(HOUSE==='conquest'?X(708):CX,1.6,HOUSE==='conquest'?Z(1215):CZ);look.yaw=0;look.pitch=0;applyLook()}
  if(m==='orbit'&&saved3d){persp.position.copy(saved3d.p);orbit.target.copy(saved3d.t);orbit.update()}
  hint();resize()}
 let saved3d=null;
@@ -820,7 +832,13 @@ function tick(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(mode==='wa
 /* ---------- boot ---------- */
 renderCatalogue();
 let stored=null,old=null;try{stored=JSON.parse(localStorage.getItem(KEY)||'null');old=JSON.parse(localStorage.getItem(OLDKEY)||'null')}catch(e){}
-if(stored&&Array.isArray(stored.items))load(stored.items);
+// house switch: the link hash picks the house; switching reloads the page with that house
+$('hName').textContent=HOUSES[HOUSE].name;$('hSub').textContent=HOUSES[HOUSE].sub;document.title=HOUSES[HOUSE].name;
+press(['hConquest','hHeddon'],HOUSE==='conquest'?'hConquest':'hHeddon');$('empty').hidden=HOUSE==='conquest';
+$('hConquest').onclick=()=>{if(HOUSE!=='conquest'){location.hash='conquest'}};$('hHeddon').onclick=()=>{if(HOUSE!=='heddon'){location.hash='heddon-greta'}};
+addEventListener('hashchange',()=>{const want=location.hash==='#heddon-greta'?'heddon':'conquest';if(want!==HOUSE)location.reload()});
+if(HOUSE!=='conquest')load(stored&&Array.isArray(stored.items)?stored.items:[]);
+else if(stored&&Array.isArray(stored.items))load(stored.items);
 else if(old&&Array.isArray(old.items))load([...old.items.filter(i=>!inFamily(i)),...lounge()]);// keep other rooms, refit the lounge
 else load(example());
 resize();requestAnimationFrame(tick);
