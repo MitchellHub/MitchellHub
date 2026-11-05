@@ -427,8 +427,9 @@ if(HOUSE==='heddon'){
   [1050,121,1125,135,2.1,'parts','robe',0,[[1050,121,1125,135,0,2.1,'htimber']]],
   [915,331,963,349,2.1,'parts','robe',0,[[915,331,963,349,0,2.1,'htimber']]],
   [966,331,1015,349,2.1,'parts','robe',0,[[966,331,1015,349,0,2.1,'htimber']]]);
- FLOORS.carpet=[[915,121,1015,236],[915,239,1015,330],[915,350,1015,437],[1050,121,1125,246],[1017,203,1048,440],[915,440,1048,562],[915,562,1017,648],[792,567,915,697],[915,648,1017,651]];
- FLOORS.tile2=[[1048,442,1125,562],[915,651,1017,697]];FLOORS.tile2wet=[[1050,374,1125,420]];
+ FLOORS.bedroom=[[915,121,1015,236],[915,239,1015,330],[915,350,1015,437],[1050,121,1125,246]];// always blackbutt
+ FLOORS.carpet=[[1017,203,1048,440],[915,440,1048,562],[915,562,1017,648],[792,567,915,697],[915,648,1017,651]];// Floor switch
+ FLOORS.kitchen=[[1048,442,1125,562]];FLOORS.tile2=[[915,651,1017,697]];FLOORS.tile2wet=[[1050,374,1125,420]];// kitchen + laundry always tile; foyer on the switch
  FLOORS.tile=[[1017,121,1047,200],[1050,249,1125,316],[1050,319,1125,371]];
  FLOORS.concrete=[[1021,565,1125,736],[1130,537,1207,708]];
  FLOORS.paver=[[787,433,910,562],[920,702,1017,740]];
@@ -632,7 +633,7 @@ function floorRect(r,mat,y,scale,boards,cat){const x0=X(r[0]),z0=Z(r[1]),x1=X(r[
  mapUV(g,scale,boards===true?2.6:boards);
  const m=new THREE.Mesh(g,mat);m.receiveShadow=true;house.add(m);if(cat){m.userData.floor={cat,mat,scale,boards:boards===true?2.6:boards};floorMeshes.push(m)}return m}
 // flooring options: dry areas (living, bedrooms, kitchen, halls) and wet areas (bathrooms, laundry); blackbutt stays out of wet areas
-// fixed choices on 21 Conquest Close: kitchen, pantry, bathrooms and laundry always Avoca tile; bedrooms always blackbutt
+// fixed choices on both houses: kitchen, pantry, bathrooms and laundry always Avoca tile; bedrooms always blackbutt
 function setFloor(mode){floorMeshes.forEach(m=>{const f=m.userData.floor;
  const want=f.cat==='fixTile'?'sand':f.cat==='fixBB'?'bb':mode;
  if(want==='sand'){m.material=M.sand;mapUV(m.geometry,1.2,0)}
@@ -645,10 +646,10 @@ const ceil=r=>{const c=floorRect(r,M.ceiling,H,99);c.castShadow=true;house.remov
 FLOORS.timber.forEach(r=>{floorRect(r,M.timber,0.001,0,true,'dry');ceil(r)});
 (FLOORS.kitchen||[]).forEach(r=>{floorRect(r,M.timber,0.002,0,true,'fixTile');ceil(r)});
 (FLOORS.bedroom||[]).forEach(r=>{floorRect(r,M.timber,0.001,0,true,'fixBB');ceil(r)});
-FLOORS.tile.forEach(r=>{floorRect(r,M.tile,0.004,1.2,0,HOUSE==='conquest'?'fixTile':'wet');ceil(r)});
+FLOORS.tile.forEach(r=>{floorRect(r,M.tile,0.004,1.2,0,'fixTile');ceil(r)});
 (FLOORS.carpet||[]).forEach(r=>{floorRect(r,M.carpet,0.001,1.5,0,'dry');ceil(r)});
 (FLOORS.tile2||[]).forEach(r=>{floorRect(r,M.tile2,0.004,0.9,0,'dry');ceil(r)});
-(FLOORS.tile2wet||[]).forEach(r=>{floorRect(r,M.tile2,0.004,0.9,0,'wet');ceil(r)});
+(FLOORS.tile2wet||[]).forEach(r=>{floorRect(r,M.tile2,0.004,0.9,0,'fixTile');ceil(r)});
 FLOORS.concrete.forEach(r=>floorRect(r,M.concrete,0.001,4));
 FLOORS.paver.forEach(r=>floorRect(r,M.paver,-0.02,2.4));
 // site: 16 m x 34 m block traced from the site plan
