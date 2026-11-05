@@ -495,6 +495,10 @@ const tile2Tex=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#b9ad9d';g.fillRect(0,0,
 const subwayTex=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#c9c7c2';g.fillRect(0,0,w,h);const r=rnd(31),tw=w/4,th=h/8;
  for(let row=0;row<8;row++){const off=row%2?tw/2:0;for(let x=-tw;x<w+tw;x+=tw){g.fillStyle=`hsl(40,${6+r()*4}%,${91+r()*3}%)`;g.fillRect(x+off+1.2,row*th+1.2,tw-2.4,th-2.4)}}});
 subwayTex.userData={world:[0.6,0.6]};
+const shedTex=canvasTex(128,64,(g,w,h)=>{g.fillStyle='#e6dcc4';g.fillRect(0,0,w,h);for(let x=0;x<w;x+=w/2){g.fillStyle='#cdbf9f';g.fillRect(x,0,5,h);g.fillStyle='#f3ebd8';g.fillRect(x+5,0,3,h)}});
+shedTex.userData={world:[0.38,1]};
+const doorTex=canvasTex(64,128,(g,w,h)=>{g.fillStyle='#3d3f40';g.fillRect(0,0,w,h);for(let y=0;y<h;y+=h/4){g.fillStyle='#2a2b2c';g.fillRect(0,y,w,4);g.fillStyle='#4c4e50';g.fillRect(0,y+4,w,2)}});
+doorTex.userData={world:[1,0.3]};
 const grassTex=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#7d9150';g.fillRect(0,0,w,h);const r=rnd(9);for(let i=0;i<4000;i++){g.fillStyle=`hsla(${72+r()*20},40%,${30+r()*25}%,.5)`;g.fillRect(r()*w,r()*h,1.5,1.5)}});
 
 const M={
@@ -519,6 +523,11 @@ const M={
  lam:new THREE.MeshStandardMaterial({color:0xc4b4b2,roughness:.35}),
  htile:new THREE.MeshStandardMaterial({color:0xecedeb,roughness:.25}),
  band:new THREE.MeshStandardMaterial({color:0xa86a3c,roughness:.7}),
+ shed:new THREE.MeshStandardMaterial({map:shedTex,roughness:.5,metalness:.1}),
+ shedGable:new THREE.MeshStandardMaterial({color:0xe6dcc4,roughness:.5,side:THREE.DoubleSide}),
+ shedRoof:new THREE.MeshStandardMaterial({color:0xe9e0c9,roughness:.45,metalness:.1}),
+ shedTrim:new THREE.MeshStandardMaterial({color:0xddd2b8,roughness:.5}),
+ rollerDoor:new THREE.MeshStandardMaterial({map:doorTex,roughness:.45,metalness:.2}),
  kcab:new THREE.MeshStandardMaterial({color:0x544c42,roughness:.6}),
  kpanel:new THREE.MeshStandardMaterial({color:0x3b3c38,roughness:.55}),
  kstone:new THREE.MeshStandardMaterial({color:0xcfcfcb,roughness:.35}),
@@ -626,7 +635,6 @@ function buildWalls(){
   if(r[5]==='garage'&&!low){const g=pane(r,0,2.2,M.garage);g.scale.z=Math.max(g.scale.z,.05)}});
  FIXTURES.forEach(f=>drawFixture(f,low?Math.max(top,1):9));
  if(!low&&FLOORS.tileWalls)FLOORS.tileWalls.forEach(r=>lineRoom(r,M.htile,0,2.1));
- if(!low&&HOUSE==='heddon')lineRoom([1048,442,1125,562],M.kred,0,H,'nes');// planned kitchen: deep red feature walls
  if(!low&&HOUSE==='heddon')[...SOLID,...WINDOWS,...OPENINGS].forEach(r=>{const e=.006;boxM(X(r[0])-e,Z(r[1])-e,X(r[2])+e,Z(r[3])+e,2.1,H,M.band,wallGroup,false)});
  if(!low&&HOUSE==='conquest'){// sheer curtains stacked beside the sliders, front door (dark timber, shown open)
   boxM(X(722),Z(318),X(740),Z(326),0,2.4,M.curtain);boxM(X(467),Z(750),X(475),Z(768),0,2.4,M.curtain);
@@ -666,12 +674,23 @@ FLOORS.concrete.forEach(r=>floorRect(r,M.concrete,0.001,4));
 FLOORS.paver.forEach(r=>floorRect(r,M.paver,-0.02,2.4));
 // site: 16 m x 34 m block traced from the site plan
 const BX0=-1.6,BX1=14.4,BZ0=-6.0,BZ1=28.0;
+const SHED=HOUSE==='heddon'?{x0:X(1094),x1:X(1210),z0:Z(-111),z1:Z(63)}:null;
 if(HOUSE!=='conquest'){const bx0=X(737),bx1=X(1214),bz0=Z(-126),bz1=Z(1017);
  const g=new THREE.PlaneGeometry(bx1-bx0,bz1-bz0);g.rotateX(-Math.PI/2);g.translate((bx0+bx1)/2,-0.04,(bz0+bz1)/2);const uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*8,uv.getY(i)*20);
  const m=new THREE.Mesh(g,M.grass);m.receiveShadow=true;scene.add(m);
  const st=new THREE.Mesh(new THREE.PlaneGeometry(80,80),new THREE.MeshStandardMaterial({color:0xcfd2c8,roughness:1}));st.rotation.x=-Math.PI/2;st.position.set(CX,-0.06,CZ);scene.add(st);
  const ft=.04,fh=1.8;boxM(bx0-ft,bz0-ft,bx0,Z(740),0,fh,M.fence,scene);boxM(bx1,bz0-ft,bx1+ft,Z(740),0,fh,M.fence,scene);boxM(bx0,bz0-ft,bx1,bz0,0,fh,M.fence,scene);
- boxM(X(1025),Z(740),X(1207),bz1,-0.035,-0.015,M.drive,scene,false)}
+ boxM(X(1025),Z(740),X(1207),bz1,-0.035,-0.015,M.drive,scene,false);
+ const sx0=SHED.x0,sx1=SHED.x1,sz0=SHED.z0,sz1=SHED.z1,wh=2.4,rh=3.05,t=.05,mx=(sx0+sx1)/2;
+ boxM(sx0-.3,sz0-.3,sx1+.3,sz1+1.6,-0.03,-0.005,M.concrete,scene,false);// slab and apron
+ boxM(sx0,sz0,sx0+t,sz1,0,wh,M.shed,scene);boxM(sx1-t,sz0,sx1,sz1,0,wh,M.shed,scene);boxM(sx0,sz0,sx1,sz0+t,0,wh,M.shed,scene);
+ const dw=2.7,dx0=sx1-.35-dw;boxM(sx0,sz1-t,dx0,sz1,0,wh,M.shed,scene);boxM(dx0+dw,sz1-t,sx1,sz1,0,wh,M.shed,scene);boxM(dx0,sz1-t,dx0+dw,sz1,2.25,wh,M.shed,scene);
+ boxM(dx0,sz1-t*.6,dx0+dw,sz1-t*.2,0,2.25,M.rollerDoor,scene);
+ const gable=z=>{const sh=new THREE.Shape();sh.moveTo(sx0,wh);sh.lineTo(sx1,wh);sh.lineTo(mx,rh);sh.lineTo(sx0,wh);const g=new THREE.Mesh(new THREE.ShapeGeometry(sh),M.shedGable);g.position.z=z;g.castShadow=true;scene.add(g)};
+ gable(sz0);gable(sz1);
+ const hw=(sx1-sx0)/2+.15,rise=rh-wh,len=Math.hypot(hw,rise*(hw/((sx1-sx0)/2))),ang=Math.atan2(rise,(sx1-sx0)/2);
+ for(const sgn of[-1,1]){const r=new THREE.Mesh(unitBox,M.shedRoof);r.scale.set(len,.04,sz1-sz0+.3);r.rotation.z=sgn*-ang;r.position.set(mx+sgn*(len/2)*Math.cos(ang),rh-(len/2)*Math.sin(ang)+.03,(sz0+sz1)/2);r.castShadow=true;r.receiveShadow=true;scene.add(r)}
+ boxM(sx0-.05,sz1+.0,sx0+.03,sz1+.03,0,wh,M.shedTrim,scene);boxM(sx1-.03,sz1,sx1+.05,sz1+.03,0,wh,M.shedTrim,scene)}
 else (()=>{const g=new THREE.PlaneGeometry(BX1-BX0,BZ1-BZ0);g.rotateX(-Math.PI/2);g.translate((BX0+BX1)/2,-0.04,(BZ0+BZ1)/2);
  const uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*8,uv.getY(i)*17);
  const m=new THREE.Mesh(g,M.grass);m.receiveShadow=true;scene.add(m);
@@ -688,7 +707,8 @@ else (()=>{const g=new THREE.PlaneGeometry(BX1-BX0,BZ1-BZ0);g.rotateX(-Math.PI/2
 
 /* ---------- collision data (metres) ---------- */
 const rectM=r=>({x0:X(r[0]),z0:Z(r[1]),x1:X(r[2]),z1:Z(r[3])});
-const BLOCKERS=[...SOLID.map(r=>({...rectM(r),y0:0,y1:H,kind:'wall'})),...WINDOWS.map(r=>({...rectM(r),y0:0,y1:H,kind:'wall'})),
+const SHED_BLOCK=SHED?[{x0:SHED.x0,x1:SHED.x1,z0:SHED.z0,z1:SHED.z1,y0:0,y1:2.4,kind:'fixture',label:'shed'}]:[];
+const BLOCKERS=[...SHED_BLOCK,...SOLID.map(r=>({...rectM(r),y0:0,y1:H,kind:'wall'})),...WINDOWS.map(r=>({...rectM(r),y0:0,y1:H,kind:'wall'})),
  ...FIXTURES.filter(f=>f[4]>0.01).map(f=>({...rectM(f),y0:f[7]||0,y1:f[4],kind:'fixture',label:f[6]}))];
 const DOORWAYS=OPENINGS.map(r=>{const m=rectM(r);const pad=0.35;if(m.x1-m.x0<m.z1-m.z0){m.x0-=pad;m.x1+=pad}else{m.z0-=pad;m.z1+=pad}return{...m,y0:0,y1:2.1}});
 
