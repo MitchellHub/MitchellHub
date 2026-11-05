@@ -279,7 +279,12 @@ const FIXTURES=[
  [688,806,760,825,1.8,'robe','pantry shelves'],[688,825,705,928,1.8,'robe','pantry shelves'],
 ];
 const FLOORS={
- timber:[[467,318,822,806],[785,177,1049,361],[816,318,878,1001],[370,806,611,993],[605,800,878,1001],[666,1000,757,1262],[751,1036,1049,1333],[878,598,1049,1001],[907,1320,1049,1345],[757,1000,868,1036]],
+ // floors the Floor switch changes: family/dining, hall, theatre, study nook, entry
+ timber:[[467,318,822,555],[467,555,670,806],[816,361,878,1001],[370,806,611,993],[605,800,682,1001],[682,935,766,1001],[766,800,878,1001],[666,1000,757,1262]],
+ // always Avoca tile: kitchen (island line to back bench) and pantry
+ kitchen:[[670,555,822,806],[682,800,766,935]],
+ // always blackbutt: bedrooms, robes and walk-in robe
+ bedroom:[[785,177,1049,361],[751,1036,1049,1333],[878,598,1049,1001],[907,1320,1049,1345],[757,1000,868,1036]],
  tile:[[878,361,1049,457],[878,463,1049,592],[874,1001,1049,1098]],
  concrete:[[370,1000,660,1290]],
  paver:[[454,111,771,305],[357,577,454,795],[673,1262,743,1400],[743,1333,893,1400],[893,1360,925,1400]],
@@ -627,16 +632,20 @@ function floorRect(r,mat,y,scale,boards,cat){const x0=X(r[0]),z0=Z(r[1]),x1=X(r[
  mapUV(g,scale,boards===true?2.6:boards);
  const m=new THREE.Mesh(g,mat);m.receiveShadow=true;house.add(m);if(cat){m.userData.floor={cat,mat,scale,boards:boards===true?2.6:boards};floorMeshes.push(m)}return m}
 // flooring options: dry areas (living, bedrooms, kitchen, halls) and wet areas (bathrooms, laundry); blackbutt stays out of wet areas
+// fixed choices on 21 Conquest Close: kitchen, pantry, bathrooms and laundry always Avoca tile; bedrooms always blackbutt
 function setFloor(mode){floorMeshes.forEach(m=>{const f=m.userData.floor;
- if(mode==='sand'){m.material=M.sand;mapUV(m.geometry,1.2,0)}
- else if(mode==='bb'&&f.cat==='dry'){m.material=M.blackbutt;mapUV(m.geometry,0,4.4,1.568)}
+ const want=f.cat==='fixTile'?'sand':f.cat==='fixBB'?'bb':mode;
+ if(want==='sand'){m.material=M.sand;mapUV(m.geometry,1.2,0)}
+ else if(want==='bb'&&f.cat!=='wet'){m.material=M.blackbutt;mapUV(m.geometry,0,4.4,1.568)}
  else{m.material=f.mat;mapUV(m.geometry,f.scale,f.boards)}});
  press(['fCur','fSand','fBB'],{cur:'fCur',sand:'fSand',bb:'fBB'}[mode]);try{localStorage.setItem('floor-'+HOUSE,mode)}catch(e){}}
 if(HOUSE==='conquest')[600,650,700].forEach(py=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(.045,.06,.3,20),M.pendant);m.position.set(X(695),2.1,Z(py));ceilGroup.add(m);
  const c=new THREE.Mesh(new THREE.CylinderGeometry(.004,.004,1.2,6),M.black);c.position.set(X(695),2.85,Z(py));ceilGroup.add(c)});
 const ceil=r=>{const c=floorRect(r,M.ceiling,H,99);c.castShadow=true;house.remove(c);ceilGroup.add(c)};
 FLOORS.timber.forEach(r=>{floorRect(r,M.timber,0.001,0,true,'dry');ceil(r)});
-FLOORS.tile.forEach(r=>{floorRect(r,M.tile,0.004,1.2,0,'wet');ceil(r)});
+(FLOORS.kitchen||[]).forEach(r=>{floorRect(r,M.timber,0.002,0,true,'fixTile');ceil(r)});
+(FLOORS.bedroom||[]).forEach(r=>{floorRect(r,M.timber,0.001,0,true,'fixBB');ceil(r)});
+FLOORS.tile.forEach(r=>{floorRect(r,M.tile,0.004,1.2,0,HOUSE==='conquest'?'fixTile':'wet');ceil(r)});
 (FLOORS.carpet||[]).forEach(r=>{floorRect(r,M.carpet,0.001,1.5,0,'dry');ceil(r)});
 (FLOORS.tile2||[]).forEach(r=>{floorRect(r,M.tile2,0.004,0.9,0,'dry');ceil(r)});
 (FLOORS.tile2wet||[]).forEach(r=>{floorRect(r,M.tile2,0.004,0.9,0,'wet');ceil(r)});
@@ -882,7 +891,7 @@ function press(ids,on){ids.forEach(i=>$(i).setAttribute('aria-pressed',i===on))}
 $('wFull').onclick=()=>{press(['wFull','wLow'],'wFull');wallH=H;buildWalls()};
 $('wLow').onclick=()=>{press(['wFull','wLow'],'wLow');wallH=1.0;buildWalls()};
 $('fCur').onclick=()=>setFloor('cur');$('fSand').onclick=()=>setFloor('sand');$('fBB').onclick=()=>setFloor('bb');
-{let f='cur';try{f=localStorage.getItem('floor-'+HOUSE)||'cur'}catch(e){}if(f!=='cur')setFloor(f)}
+{let f='cur';try{f=localStorage.getItem('floor-'+HOUSE)||'cur'}catch(e){}setFloor(f)}
 let showLabels=true;$('tLabels').onclick=()=>{showLabels=!showLabels;$('tLabels').setAttribute('aria-pressed',showLabels)};
 let snap=true;$('tSnap').onclick=()=>{snap=!snap;$('tSnap').setAttribute('aria-pressed',snap)};
 let measuring=false,mPts=[];const mLine=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xc0392b,depthTest:false}));mLine.renderOrder=9;scene.add(mLine);
