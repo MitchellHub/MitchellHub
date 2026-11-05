@@ -633,7 +633,7 @@ function floorRect(r,mat,y,scale,boards,cat){const x0=X(r[0]),z0=Z(r[1]),x1=X(r[
  mapUV(g,scale,boards===true?2.6:boards);
  const m=new THREE.Mesh(g,mat);m.receiveShadow=true;house.add(m);if(cat){m.userData.floor={cat,mat,scale,boards:boards===true?2.6:boards};floorMeshes.push(m)}return m}
 // flooring options: dry areas (living, bedrooms, kitchen, halls) and wet areas (bathrooms, laundry); blackbutt stays out of wet areas
-// fixed choices on both houses: kitchen, pantry, bathrooms and laundry always Avoca tile; bedrooms always blackbutt
+// fixed choices (76 Main Road): kitchen, bathrooms and laundry always Avoca tile; bedrooms always blackbutt
 function setFloor(mode){floorMeshes.forEach(m=>{const f=m.userData.floor;
  const want=f.cat==='fixTile'?'sand':f.cat==='fixBB'?'bb':mode;
  if(want==='sand'){m.material=M.sand;mapUV(m.geometry,1.2,0)}
@@ -644,12 +644,14 @@ if(HOUSE==='conquest')[600,650,700].forEach(py=>{const m=new THREE.Mesh(new THRE
  const c=new THREE.Mesh(new THREE.CylinderGeometry(.004,.004,1.2,6),M.black);c.position.set(X(695),2.85,Z(py));ceilGroup.add(c)});
 const ceil=r=>{const c=floorRect(r,M.ceiling,H,99);c.castShadow=true;house.remove(c);ceilGroup.add(c)};
 FLOORS.timber.forEach(r=>{floorRect(r,M.timber,0.001,0,true,'dry');ceil(r)});
-(FLOORS.kitchen||[]).forEach(r=>{floorRect(r,M.timber,0.002,0,true,'fixTile');ceil(r)});
-(FLOORS.bedroom||[]).forEach(r=>{floorRect(r,M.timber,0.001,0,true,'fixBB');ceil(r)});
-FLOORS.tile.forEach(r=>{floorRect(r,M.tile,0.004,1.2,0,'fixTile');ceil(r)});
+// fixed finishes apply to 76 Main Road only; on 21 Conquest Close the Floor switch changes every floor (wet areas follow the tile option only)
+const FIX=HOUSE==='heddon';
+(FLOORS.kitchen||[]).forEach(r=>{floorRect(r,M.timber,0.002,0,true,FIX?'fixTile':'dry');ceil(r)});
+(FLOORS.bedroom||[]).forEach(r=>{floorRect(r,M.timber,0.001,0,true,FIX?'fixBB':'dry');ceil(r)});
+FLOORS.tile.forEach(r=>{floorRect(r,M.tile,0.004,1.2,0,FIX?'fixTile':'wet');ceil(r)});
 (FLOORS.carpet||[]).forEach(r=>{floorRect(r,M.carpet,0.001,1.5,0,'dry');ceil(r)});
 (FLOORS.tile2||[]).forEach(r=>{floorRect(r,M.tile2,0.004,0.9,0,'dry');ceil(r)});
-(FLOORS.tile2wet||[]).forEach(r=>{floorRect(r,M.tile2,0.004,0.9,0,'fixTile');ceil(r)});
+(FLOORS.tile2wet||[]).forEach(r=>{floorRect(r,M.tile2,0.004,0.9,0,FIX?'fixTile':'wet');ceil(r)});
 FLOORS.concrete.forEach(r=>floorRect(r,M.concrete,0.001,4));
 FLOORS.paver.forEach(r=>floorRect(r,M.paver,-0.02,2.4));
 // site: 16 m x 34 m block traced from the site plan
